@@ -1,0 +1,1769 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Planta 3D interativa do Planejamento Estratégico 2027 do Grupo Arantes no Galpão 01.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body><<title>Planejamento Estratégico 2027</title>
+<link rel="icon" type="image/png" href="favicon-grupo-arantes.png">
+<link rel="apple-touch-icon" href="favicon-grupo-arantes.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: a full-height 3D stage with a control rail on the right; on phones the rail drops below the stage.
+   Identidade Grupo Arantes: degradê índigo → azul, ciano 638C como destaque, Gotham (Montserrat como substituta web) e Segoe UI. */
+:root {
+  --bg: #0b0a22;
+  --panel: #131233;
+  --raise: #1c1b45;
+  --line: #2a2a5a;
+  --fg: #eef1f7;
+  --muted: #a3a8c3;
+  --brand-blue: #31729b;
+  --brand-cyan: #00b9cf;
+  --brand-gray: #606062;
+  --grad-from: #18026e;
+  --grad-to: #0765a5;
+  --accent: var(--brand-cyan);
+  --accent-ink: #00161a;
+  --fabric: #4a4b55;
+  --rack: #e0473c;
+  --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-label: Gotham, Montserrat, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.45; }
+* { box-sizing: border-box; }
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 12px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.stage { position: relative; min-width: 0; border-radius: 10px; overflow: hidden; background: #07061a; border: 1px solid var(--line); }
+.stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+.hud { position: absolute; left: 12px; right: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.seg { display: inline-flex; background: rgba(16,18,22,.86); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; backdrop-filter: blur(6px); }
+.seg button {
+  font: 600 14px/1 var(--font-label); letter-spacing: .04em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 0; border-radius: 6px; padding: 9px 12px; cursor: pointer;
+}
+.seg button:hover { color: var(--fg); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+button:focus-visible, .zone:focus-visible, input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.hint { position: absolute; left: 12px; bottom: 12px; font-size: 12px; color: var(--muted); background: rgba(16,18,22,.8); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; pointer-events: none; }
+.tip { position: absolute; pointer-events: none; font: 600 13px/1.2 var(--font-label); letter-spacing: .03em; background: var(--fg); color: var(--bg); padding: 5px 8px; border-radius: 4px; transform: translate(12px, 12px); white-space: nowrap; }
+
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl { position: absolute; transform: translate(-50%, -100%); text-align: center; white-space: nowrap; font-family: var(--font-label); text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6); }
+.lbl b { display: block; font-weight: 700; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+.lbl small { display: block; font-weight: 500; font-size: 12px; color: #cfd4dc; letter-spacing: .02em; }
+.lbl.minor b { font-size: 12px; color: #d9dde3; }
+.labels.off { display: none; }
+
+.panel { min-width: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 2px; }
+.head { background: linear-gradient(135deg, var(--grad-from), var(--grad-to)); border-radius: 10px; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: start; }
+.head .brand { width: 62px; height: auto; }
+.head .eyebrow { display: inline-block; font: 700 11px/1 var(--font-label); letter-spacing: .12em; text-transform: uppercase; color: var(--grad-from); background: #fff; border-radius: 999px; padding: 5px 9px; }
+.head h1 { font: 800 26px/1.05 var(--font-label); text-transform: uppercase; letter-spacing: .01em; margin: 10px 0 2px; text-wrap: balance; color: #fff; }
+.head h1 span { display: block; font-weight: 400; color: #8fe6f2; }
+.head p { margin: 8px 0 0; color: #d6dcf0; font-size: 14px; grid-column: 1 / -1; }
+
+.totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.totals div { padding: 10px 10px 9px; background: var(--panel); }
+.totals div + div { border-left: 1px solid var(--line); }
+.totals strong { display: block; font: 700 24px/1 var(--font-label); font-variant-numeric: tabular-nums; }
+.totals span { font-size: 12px; color: var(--muted); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.card h2 { font: 600 13px/1 var(--font-label); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+.detail h3 { font: 700 22px/1.1 var(--font-label); margin: 0 0 4px; }
+.detail .dims { font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; margin-bottom: 8px; }
+.detail p { margin: 0; font-size: 14px; }
+.detail .cap { margin-top: 8px; display: inline-block; font: 600 13px/1 var(--font-label); letter-spacing: .05em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--raise); }
+
+.zones { display: grid; gap: 2px; }
+.zone { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; color: var(--fg); border: 0; border-radius: 6px; padding: 7px 8px; cursor: pointer; font: 500 14px/1.2 var(--font-ui); }
+.zone:hover { background: var(--raise); }
+.zone[aria-current="true"] { background: var(--raise); box-shadow: inset 0 0 0 1px var(--accent); }
+.zone i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25); }
+.zone em { font-style: normal; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.layers { display: grid; gap: 8px; }
+.layers label { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+.layers input { accent-color: var(--accent); width: 16px; height: 16px; }
+.layers .sw { width: 22px; height: 4px; border-radius: 2px; }
+
+.vrows { display: grid; gap: 8px; }
+.vrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.vname { font: 700 13px/1.2 var(--font-label); letter-spacing: .04em; }
+.vrow .btn { padding: 8px 10px; font-size: 12px; }
+.vrow:focus-within .btn:not(.ghost) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; font: 700 13px/1 var(--font-label); letter-spacing: .04em; text-transform: uppercase; background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: 6px; padding: 10px 12px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn:hover { filter: brightness(1.1); }
+.sr { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.sr:focus-visible + .btn, .video-row label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.small { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.chat-fab { position: absolute; right: 12px; bottom: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+.chat { position: absolute; right: 12px; bottom: 12px; width: min(380px, calc(100% - 24px)); height: min(70%, 520px); display: flex; flex-direction: column; background: rgba(19,18,51,.97); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.5); overflow: hidden; }
+.chat-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: linear-gradient(135deg, var(--grad-from), var(--grad-to)); font: 700 14px/1 var(--font-label); text-transform: uppercase; letter-spacing: .04em; }
+.chat-x { background: none; border: 0; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.chat-log { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 88%; padding: 8px 11px; border-radius: 10px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.bot { align-self: flex-start; background: var(--raise); border: 1px solid var(--line); }
+.msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); }
+.msg.note { align-self: center; background: none; color: var(--muted); font-size: 12px; padding: 0; }
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.chat-chips button { font: 600 12px/1 var(--font-ui); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+.chat-chips button:hover { border-color: var(--accent); }
+.chat-form { display: grid; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.chat-form textarea, .req-form textarea { width: 100%; resize: vertical; font: 14px/1.4 var(--font-ui); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+.chat-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.req-form { display: grid; gap: 6px; margin-bottom: 10px; }
+.reqs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.reqs li { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px; overflow-wrap: anywhere; }
+.reqs .meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--muted); }
+.reqs .st { font: 700 10px/1 var(--font-label); letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 7px; background: var(--raise); color: var(--muted); }
+.reqs .st.feito { background: #1aa874; color: #031a10; }
+@media (max-width: 860px) { .chat { height: 80%; } }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+.notes b { color: var(--fg); font-weight: 600; }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .stage { height: 64vh; min-height: 380px; }
+  .panel { overflow: visible; }
+  .hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="app">
+  <section class="stage" id="stage" aria-label="Planta 3D do evento">
+    <div class="labels" id="labels"></div>
+    <div class="hud">
+      <div class="seg" role="group" aria-label="Configuração do dia">
+        <button type="button" id="sc-d14" data-sc="d14" aria-pressed="false">Dias 1 a 4</button>
+        <button type="button" id="sc-d5" data-sc="d5" aria-pressed="true">Dia 5 · plateia 250</button>
+      </div>
+      <div class="seg" role="group" aria-label="Teto">
+        <button type="button" id="roof-open" data-roof="open" aria-pressed="true">Teto aberto</button>
+        <button type="button" id="roof-closed" data-roof="closed" aria-pressed="false">Teto fechado</button>
+      </div>
+      <div class="seg" role="group" aria-label="Ponto de vista">
+        <button type="button" id="v-3d" data-view="persp" aria-pressed="true">3D</button>
+        <button type="button" id="v-top" data-view="top" aria-pressed="false">Planta</button>
+        <button type="button" id="v-aud" data-view="audience" aria-pressed="false">Plateia</button>
+        <button type="button" id="v-in" data-view="entry" aria-pressed="false">Entrada</button>
+        <button type="button" id="v-tour" aria-pressed="false">Percorrer corredor</button>
+      </div>
+    </div>
+    <div class="hint">Arraste para girar · role para zoom · clique numa área</div>
+    <button type="button" class="btn chat-fab" id="chat-open" hidden>Assistente do projeto</button>
+    <div class="chat" id="chat" hidden>
+      <div class="chat-head">
+        <b>Assistente do projeto</b>
+        <button type="button" class="chat-x" id="chat-close" aria-label="Fechar assistente">×</button>
+      </div>
+      <div class="chat-log" id="chat-log" aria-live="polite"></div>
+      <div class="chat-chips" id="chat-chips">
+        <button type="button" data-q="Quantas pessoas cabem no Dia 5 e nos Dias 1 a 4?">Capacidade</button>
+        <button type="button" data-q="Me mostre o corredor interativo por dentro.">Ver o corredor</button>
+        <button type="button" data-q="Quero pedir uma alteração no projeto: ">Pedir alteração</button>
+      </div>
+      <form class="chat-form" id="chat-form">
+        <textarea id="chat-input" rows="2" maxlength="1500" placeholder="Pergunte sobre o evento ou peça uma alteração"></textarea>
+        <div class="chat-actions">
+          <button type="button" class="btn ghost" id="chat-stop" hidden>Parar</button>
+          <button type="submit" class="btn" id="chat-send">Enviar</button>
+        </div>
+      </form>
+    </div>
+    <div class="tip" id="tip" hidden></div>
+  </section>
+
+  <aside class="panel">
+    <header class="head">
+      <div>
+        <div class="eyebrow">Galpão 01 · 48 × 19 m</div>
+        <h1>Planejamento<span>Estratégico 2027</span></h1>
+      </div>
+      <img class="brand" src="logo-grupo-arantes.png" alt="Grupo Arantes">
+      <p>Plenária, coffee e três salas montadas em frente ao porta-paletes, com entrada pelo túnel lateral.</p>
+    </header>
+
+    <div class="totals" id="totals"></div>
+
+    <div class="card detail" id="detail" aria-live="polite"></div>
+
+    <div class="card">
+      <h2>Áreas</h2>
+      <div class="zones" id="zones"></div>
+    </div>
+
+    <div class="card">
+      <h2>Camadas</h2>
+      <div class="layers">
+        <label><input type="checkbox" id="ly-flow" checked><span class="sw" style="background:var(--accent)"></span>Fluxo do público</label>
+        <label><input type="checkbox" id="ly-fabric" checked><span class="sw" style="background:var(--fabric)"></span>Paredes de tecido</label>
+        <label><input type="checkbox" id="ly-rack" checked><span class="sw" style="background:var(--rack)"></span>Porta-paletes</label>
+        <label><input type="checkbox" id="ly-envelope" checked><span class="sw" style="background:#4c4253"></span>Galpão (paredes e cobertura)</label>
+        <label><input type="checkbox" id="ly-fx" checked><span class="sw" style="background:#ffd27a"></span>Fachos de luz, faíscas e fumaça</label>
+        <label><input type="checkbox" id="ly-labels" checked><span class="sw" style="background:#fff"></span>Nomes das áreas</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Vídeo nos LEDs</h2>
+      <div class="vrows" id="video-rows"></div>
+      <p class="small" id="video-status">Cada painel tem o seu botão. Escolha um arquivo do seu computador (MP4 de preferência). Ele roda só no seu navegador e não é enviado para ninguém.</p>
+    </div>
+
+    <div class="card" id="req-card">
+      <h2>Pedidos de alteração</h2>
+      <form class="req-form" id="req-form" hidden>
+        <textarea id="req-input" rows="2" maxlength="1000" placeholder="Descreva o que mudar no projeto"></textarea>
+        <button type="submit" class="btn">Enviar pedido</button>
+      </form>
+      <ul class="reqs" id="req-list"></ul>
+      <p class="small" id="req-status">Carregando pedidos…</p>
+    </div>
+
+    <div class="card notes">
+      <h2>Contexto e premissas</h2>
+      <ul>
+        <li><b>Galpão 01:</b> 9.296 m² em 3 áreas compartimentadas de cerca de 3.053 m² cada. O evento ocupa cerca de 912 m², uns 10% do galpão.</li>
+        <li><b>Largura de 48 m:</b> é praticamente a de um compartimento (cerca de 47,6 m). A posição exata dentro do galpão ainda precisa ser definida.</li>
+        <li><b>Galpão como nas fotos:</b> porta-paletes azuis e laranja com 7 níveis (cerca de 12 m), em fileiras duplas de topo para o evento, com corredores de 3,2 m indo para o fundo, protetores amarelos nas pontas e paletes filmados; piso de concreto claro com faixas; paredes com faixa roxa e painéis brancos, pilares de concreto, tubulação vermelha e cobertura a cerca de 14 m com luminárias redondas. Altura da cobertura e posição dos pilares são aproximadas.</li>
+        <li><b>Do vídeo do drone:</b> tecido preto com luz azul de baixo para cima e climatizadores, como no evento anterior. A saída é uma porta de correr na parede de concreto, com folha cinza no trilho e vão de cerca de 4,5 × 5,5 m, no fim da faixa de pedestre. O tecido preto fica encostado nas pontas dos porta-paletes, e a faixa de pedestre passa do lado de dentro do evento, numa circulação de cerca de 2,3 m entre o tecido e as áreas. Com isso, a área fechada do evento passa a ter cerca de 48 × 21,3 m. A folha corre por um corredor lateral junto à parede.</li>
+        <li><b>Medidas estimadas</b> pelo desenho do layout e pela cota de 19 m do evento anterior. Confirmar no local.</li>
+        <li><b>Dias 1 a 4:</b> Workshop A e B, cada um com 10 mesas redondas de 4 cadeiras voltadas para o palco (80 no total).</li>
+        <li><b>LED P3.9:</b> CENTRAL de 8 × 5 m (2048 × 1280 px), ESQUERDA-1 e DIREITA-2 de 4 × 5 m (1024 × 1280 px). Os três ficam no chão, com topos em 5,0 m. O palco (8 m, 1,0 m de altura) encosta na frente do central e cobre o primeiro 1,0 m dele, então a área visível do central é de 8 × 4 m.</li>
+        <li><b>Teto fechado (proposta):</b> tecido preto a 6,0 m sobre o evento, com o teto aberto sobre as salas S1, S2 e S3. O coffee tem pendentes de luz quente sobre as mesas. A altura livre do galpão precisa ser confirmada.</li>
+        <li><b>Corredor interativo:</b> o túnel de entrada fica 100% fechado (teto a 3,0 m), no tema de nave espacial do ano passado, com fumaça densa, luz violeta, fita de LED no rodapé, areia no piso iluminada por refletores vermelhos e painel de boas-vindas na entrada. O botão "Percorrer corredor" faz o caminho da escada até a plenária na altura dos olhos.</li>
+        <li><b>Iluminação:</b> pórtico de treliça Q30 em volta do LED central, com 2 moving heads, 2 PARs e 1 luz de palco, e uma treliça de 16 m no meio da plenária com 4 refletores voltados para o palco. Há uma máquina de faísca fria em cada ponta da frente do palco.</li>
+        <li><b>Porta-paletes:</b> parede de tecido de 4 m de altura em toda a divisão com os racks, nos 48 m do evento.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const W = 48, D = 19;
+// o tecido do evento fica encostado nas pontas dos porta-paletes; entre ele e as áreas (z = 0) passa a faixa de pedestre
+const FRONT_Z = -2.28;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let scen = 'd5';
+
+/* ---------- Áreas (metros; x ao longo do porta-paletes, z da parede de racks para o túnel) ---------- */
+const ZONES = [
+  { id: 'coxia', name: 'Coxia', x: [0, 3], z: [0, 16.84], color: 0x3a3e46,
+    desc: 'Bastidores: entrada de palestrantes e equipe e guarda de equipamentos.' },
+  { id: 'palco', name: 'Palco', x: [3, 6.4], z: [0, 16.84], color: 0x24272e,
+    desc: 'Palco de 8 × 3,2 m, 1,0 m acima do piso, com escada na frente e a mesma largura do LED central. Os três LEDs ficam apoiados no chão e terminam em 5,0 m. O CENTRAL de 8 × 5 m (2048 × 1280 px) fica atrás do palco, que encosta nele e cobre o primeiro 1,0 m. Na frente, perto da plateia, ficam o ESQUERDA-1 e o DIREITA-2, de 4 × 5 m (1024 × 1280 px) cada. Todos são P3.9.', cap: 'LED 8 × 5 m + 2 × (4 × 5 m)' },
+  { id: 'plenaria', name: 'Plenária', x: [6.4, 25.6], z: [0, 16.84], color: 0x2b2e57,
+    desc: { d5: 'Dois blocos de 12 fileiras × 10 cadeiras, voltados para o palco, com corredor central de 2,9 m.',
+            d14: 'Workshop A e Workshop B, um de cada lado do corredor central. Cada um tem 10 mesas redondas com 4 cadeiras voltadas para o palco, 40 pessoas por workshop. Ninguém fica de costas para o palco.' },
+    cap: { d5: '240 cadeiras', d14: '80 lugares' } },
+  { id: 'tecnica', name: 'Mesa técnica', x: [22.85, 24.2], z: [7.15, 9.65], color: 0x5b6170, box: 0.03,
+    desc: 'No fim do corredor central, alinhada com o LED central: dois balcões dobráveis de painel perfurado preto, lado a lado e de frente para o palco (DJ e apoio técnico de som, luz e vídeo), 2,5 m no total, com duas pessoas operando. Atrás delas fica uma parede de tecido preto de 2,5 × 1,2 m.', cap: 'DJ + apoio técnico' },
+  { id: 'tunel', name: 'Corredor interativo', x: [0, 23.5], z: [16.84, 19], color: 0x33363d,
+    desc: 'Túnel 100% fechado, com teto a 3,0 m, entre a escada externa e o credenciamento, no tema de nave espacial do ano passado. Paredes e teto revestidos com painéis de nave, janelas com planeta e escotilhas redondas, fumaça densa, luz violeta e fita de LED no rodapé. O piso tem areia, iluminada por cinco refletores vermelhos no teto. Na entrada fica o painel de boas-vindas. Use "Percorrer corredor" para caminhar pelos cerca de 22 m.',
+    cap: 'Nave espacial + fumaça' },
+  { id: 'credenc', name: 'Credenciamento', x: [23.5, 25.6], z: [16.84, 19], color: 0x46413a,
+    desc: 'Saída do corredor interativo. O backdrop do Grupo fica de frente para quem sai. Daqui o público segue para a plenária ou para o coffee.', cap: 'Backdrop do Grupo' },
+  { id: 'coffee', name: 'Coffee', x: [25.6, 36.3], z: [0, 19], color: 0x4b3820,
+    desc: '10 mesas bistrô espalhadas e buffet de 5,8 m junto ao túnel.', cap: '10 mesas bistrô' },
+  { id: 's1', name: 'Sala S1', x: [36.3, 44.86], z: [0, 5.74], color: 0x173b30,
+    desc: '4 mesas redondas com 6 cadeiras cada e uma TV na parede do fundo.', cap: '24 lugares' },
+  { id: 's2', name: 'Sala S2', x: [36.3, 44.86], z: [5.74, 11.56], color: 0x1a4135,
+    desc: '4 mesas redondas com 6 cadeiras cada e uma TV na parede do fundo.', cap: '24 lugares' },
+  { id: 's3', name: 'Sala S3', x: [36.3, 44.86], z: [11.56, 17.4], color: 0x173b30,
+    desc: '4 mesas redondas com 6 cadeiras cada e uma TV na parede do fundo.', cap: '24 lugares' },
+  { id: 'passagem', name: 'Passagem oculta', x: [36.3, 44.86], z: [17.4, 19], color: 0x2e3137,
+    desc: 'Circulação de equipe e catering por trás das salas, fora da vista do público.' },
+  { id: 'apoio', name: 'Apoio', x: [44.86, 48], z: [0, 19], color: 0x3a3d44,
+    desc: 'Área de serviço junto à parede de concreto.' },
+];
+const zoneById = Object.fromEntries(ZONES.map(z => [z.id, z]));
+const pick = v => (v && typeof v === 'object' ? v[scen] : v);
+
+/* ---------- Cena ---------- */
+const stageEl = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stageEl.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07061a);
+scene.fog = new THREE.Fog(0x07061a, 70, 140);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.minDistance = 4;
+controls.maxDistance = 110;
+
+const hemi = new THREE.HemisphereLight(0xc9d2e2, 0x1d2126, 0.9);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff4e6, 1.7);
+sun.position.set(34, 42, 30);
+sun.target.position.set(24, 0, 9.5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -32, right: 32, top: 26, bottom: -26, near: 5, far: 120 });
+sun.shadow.bias = -0.0004;
+scene.add(sun, sun.target);
+const fill = new THREE.DirectionalLight(0x8fa6d6, 0.35);
+fill.position.set(-20, 18, -10);
+scene.add(fill);
+
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0, ...o });
+function box(w, h, d, m, x, y, z, parent = scene, shadow = true) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = shadow; mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+const groups = {
+  fabric: new THREE.Group(), rack: new THREE.Group(), flow: new THREE.Group(),
+  d5: new THREE.Group(), d14: new THREE.Group(),
+};
+Object.values(groups).forEach(g => scene.add(g));
+
+/* Piso do galpão (laje elevada na altura da doca) e terreno externo */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), mat(0x1a1d21, { roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -1.25; ground.receiveShadow = true;
+scene.add(ground);
+// piso de concreto polido claro, como nas fotos do galpão
+box(49.2, 1.25, 33.05, mat(0xa7abae, { roughness: 0.45, metalness: 0.05 }), 24, -0.625, 2.525, scene, false);
+
+/* Galpão real: paredes com faixa roxa embaixo, faixa branca e painéis metálicos brancos em cima, pilares de concreto,
+   tubulação vermelha de incêndio e cobertura alta com luminárias redondas.
+   Todas as faces olham para dentro, então de fora e de cima o 3D continua visível. */
+const GALPAO = { x0: -0.6, x1: 48.6, z0: -14.0, z1: 19.05, h: 14 };
+const envelope = new THREE.Group(); scene.add(envelope);
+{
+  const PX = 64;                                  // pixels por metro na textura
+  const cv = document.createElement('canvas'); cv.width = 4 * PX; cv.height = GALPAO.h * PX;
+  const g = cv.getContext('2d'), Y = m => cv.height - m * PX;  // altura em metros → pixel
+  g.fillStyle = '#e6e8eb'; g.fillRect(0, 0, cv.width, cv.height);
+  for (let x = 0; x < cv.width; x += PX * 0.25) { g.fillStyle = '#d2d6db'; g.fillRect(x, 0, 3, Y(4.6)); }  // ondas do painel
+  g.fillStyle = '#c4c8ce'; for (const m of [6.6, 9.6, 12.6]) g.fillRect(0, Y(m), cv.width, 5);             // terças
+  g.fillStyle = '#f4f5f6'; g.fillRect(0, Y(4.6), cv.width, (4.6 - 1.9) * PX);                               // faixa branca
+  g.fillStyle = '#4c4253'; g.fillRect(0, Y(1.8), cv.width, 1.8 * PX);                                       // faixa roxa
+  g.fillStyle = '#ffffff'; g.fillRect(0, Y(1.9), cv.width, 0.1 * PX);
+  const wallTex = (len) => {
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = THREE.RepeatWrapping; t.repeat.set(len / 4, 1); return t;
+  };
+  const wall = (len, h, x, z, ry, y0 = 0) => {
+    const tex = wallTex(len);
+    if (y0 || h !== GALPAO.h) { tex.repeat.y = h / GALPAO.h; tex.offset.y = y0 / GALPAO.h; }
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(len, h), mat(0xffffff, { map: tex, roughness: 0.8 }));
+    m.position.set(x, y0 + h / 2, z); m.rotation.y = ry; m.receiveShadow = true; envelope.add(m);
+  };
+  const { x0, x1, z0, z1, h } = GALPAO, L = z1 - z0, Wd = x1 - x0;
+  wall(L, h, x0, (z0 + z1) / 2, Math.PI / 2);          // lado da coxia
+  // lado do apoio: parede corta-fogo de concreto pré-moldado, com a porta de correr de saída (como no vídeo)
+  {
+    const cc = document.createElement('canvas'); cc.width = 4 * PX; cc.height = h * PX;
+    const q = cc.getContext('2d');
+    q.fillStyle = '#8e8c88'; q.fillRect(0, 0, cc.width, cc.height);
+    let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 900; i++) { q.fillStyle = `rgba(${r() < 0.5 ? '60,58,55' : '170,168,163'},${0.04 + r() * 0.06})`; q.fillRect(r() * cc.width, r() * cc.height, 6 + r() * 40, 4 + r() * 18); }
+    q.fillStyle = 'rgba(40,38,36,.55)';
+    for (let m = 2.4; m < h; m += 2.4) q.fillRect(0, cc.height - m * PX, cc.width, 3);   // juntas horizontais das placas
+    q.fillRect(0, 0, 3, cc.height);                                                   // junta vertical
+    const tex = new THREE.CanvasTexture(cc); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(L / 4, 1);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(L, h), mat(0xffffff, { map: tex, roughness: 0.95 }));
+    m.position.set(x1, h / 2, (z0 + z1) / 2); m.rotation.y = -Math.PI / 2; m.receiveShadow = true; envelope.add(m);
+
+    // vão da porta (4,5 × 5,5 m) mostrando o compartimento vizinho: parede de painéis brancos e racks azuis e laranja
+    // fica no fim da faixa de pedestre (z ≈ −1,1), dentro do evento; a folha corre para o fundo do galpão
+    const DOOR = { z0: -3.35, z1: 1.15, h: 5.5 };
+    const dc = document.createElement('canvas'); dc.width = 450; dc.height = 550;
+    const d = dc.getContext('2d');
+    d.fillStyle = '#d9dce0'; d.fillRect(0, 0, 450, 550);
+    for (let x = 0; x < 450; x += 12) { d.fillStyle = '#c3c7cc'; d.fillRect(x, 0, 2, 380); }
+    d.fillStyle = '#9fa3a7'; d.fillRect(0, 470, 450, 80);
+    d.fillStyle = '#f3c01a'; d.fillRect(205, 470, 6, 80);
+    for (const [x0r, w] of [[250, 200], [0, 130]]) {
+      for (let y = 40; y < 470; y += 62) { d.fillStyle = '#e8561e'; d.fillRect(x0r, y, w, 6); }
+      for (let x = x0r; x <= x0r + w; x += 40) { d.fillStyle = '#1f45b8'; d.fillRect(x, 20, 6, 450); }
+      for (let y = 46; y < 470; y += 62) for (let x = x0r + 8; x < x0r + w - 10; x += 20) { d.fillStyle = ['#d9c2a0', '#eae6e0', '#c9a882', '#e0c8d8'][(x + y) % 4]; d.fillRect(x, y, 16, 50); }
+    }
+    const dtex = new THREE.CanvasTexture(dc); dtex.colorSpace = THREE.SRGBColorSpace;
+    const hole = new THREE.Mesh(new THREE.PlaneGeometry(DOOR.z1 - DOOR.z0, DOOR.h), mat(0xffffff, { map: dtex, roughness: 0.9, emissive: 0xffffff, emissiveMap: dtex, emissiveIntensity: 0.25 }));
+    hole.position.set(x1 - 0.02, DOOR.h / 2, (DOOR.z0 + DOOR.z1) / 2); hole.rotation.y = -Math.PI / 2; envelope.add(hole);
+    // folha de correr cinza (aberta, deslocada para o lado), trilho com roldanas no alto e batente branco
+    const leafW = 4.7, leafZ = DOOR.z0 - leafW / 2 + 0.2;
+    const lc = document.createElement('canvas'); lc.width = 256; lc.height = 300;
+    const l = lc.getContext('2d');
+    l.fillStyle = '#7c7d7b'; l.fillRect(0, 0, 256, 300);
+    l.strokeStyle = 'rgba(55,56,55,.45)'; l.lineWidth = 2;
+    for (let y = 0; y < 300; y += 20) for (let x = (y / 20) % 2 ? 0 : 20; x < 256; x += 40) l.strokeRect(x, y, 40, 20);
+    const ltex = new THREE.CanvasTexture(lc); ltex.colorSpace = THREE.SRGBColorSpace;
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.08, DOOR.h + 0.2, leafW), [mat(0x6f706e), mat(0xffffff, { map: ltex, roughness: 0.7, metalness: 0.2 }), mat(0x6f706e), mat(0x6f706e), mat(0x6f706e), mat(0x6f706e)]);
+    leaf.position.set(x1 - 0.12, (DOOR.h + 0.2) / 2, leafZ); leaf.castShadow = true; envelope.add(leaf);
+    const steelDark = mat(0x2a2b2e, { roughness: 0.4, metalness: 0.7 });
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, leafW * 2 + 0.6, 10), steelDark);
+    rail.rotation.x = Math.PI / 2; rail.position.set(x1 - 0.12, DOOR.h + 0.55, DOOR.z0 - 0.1); envelope.add(rail);
+    for (let i = 0; i < 9; i++) {
+      const hang = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 6), steelDark);
+      hang.position.set(x1 - 0.12, DOOR.h + 0.33, leafZ - leafW / 2 + 0.3 + i * (leafW - 0.6) / 8); envelope.add(hang);
+    }
+    box(0.08, DOOR.h + 0.4, 0.12, steelDark, x1 - 0.08, (DOOR.h + 0.4) / 2, leafZ - leafW / 2 - 0.25, envelope);  // guia vertical
+    box(0.14, DOOR.h, 0.35, mat(0xeef0f1, { roughness: 0.8 }), x1 - 0.07, DOOR.h / 2, DOOR.z1 + 0.18, envelope);  // batente branco
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.2), new THREE.MeshBasicMaterial({ color: 0x1aa874, toneMapped: false }));
+    sign.position.set(x1 - 0.06, DOOR.h + 0.25, (DOOR.z0 + DOOR.z1) / 2); sign.rotation.y = -Math.PI / 2; envelope.add(sign);
+    // faixas amarelas no piso entrando pela porta
+    for (const dz of [-0.9, 0.9]) {
+      const f = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 0.08), new THREE.MeshBasicMaterial({ color: 0xf3c01a }));
+      f.rotation.x = -Math.PI / 2; f.position.set(x1 - 2.25, 0.02, (DOOR.z0 + DOOR.z1) / 2 + dz); envelope.add(f);
+    }
+  }
+  wall(Wd, h, (x0 + x1) / 2, z0, 0);                   // fundo, atrás dos racks
+  const doorX = [0.3, 2.1], doorH = 2.4;               // porta da escada externa
+  wall(x1 - doorX[1], h, (doorX[1] + x1) / 2, z1, Math.PI);
+  wall(doorX[0] - x0, h, (x0 + doorX[0]) / 2, z1, Math.PI);
+  wall(doorX[1] - doorX[0], h - doorH, (doorX[0] + doorX[1]) / 2, z1, Math.PI, doorH);
+  // pilares de concreto e tubulação vermelha ao longo da lateral de painéis (a de concreto é lisa)
+  const concrete = mat(0xb9b6b0, { roughness: 0.9 });
+  const redPipe = mat(0xc8231c, { roughness: 0.5, metalness: 0.3 });
+  for (const [x, dx] of [[x0, 1]]) {
+    for (let z = z0 + 4; z < z1 - 1; z += 8) box(0.6, h, 0.7, concrete, x + dx * 0.3, h / 2, z, envelope);
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, L, 10), redPipe);
+    pipe.rotation.x = Math.PI / 2; pipe.position.set(x + dx * 0.75, 5.2, (z0 + z1) / 2); envelope.add(pipe);
+  }
+  // cobertura: telhas brancas, vigas metálicas e luminárias redondas (tudo virado para baixo)
+  const down = (w, d, material, x, y, z) => {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, d), material);
+    p.rotation.x = Math.PI / 2; p.position.set(x, y, z); envelope.add(p);
+  };
+  down(Wd, L, mat(0xeef0f2, { roughness: 0.8 }), (x0 + x1) / 2, h, (z0 + z1) / 2);
+  const steel = mat(0xb7bcc2, { roughness: 0.5, metalness: 0.5 });
+  for (let x = x0 + 6; x < x1; x += 6) down(0.35, L, steel, x, h - 0.5, (z0 + z1) / 2);
+  for (let z = z0 + 5.5; z < z1; z += 5.5) down(Wd, 0.25, steel, (x0 + x1) / 2, h - 0.3, z);
+  const lampMat = new THREE.MeshBasicMaterial({ color: 0xfffaf0, toneMapped: false });
+  const lampGeo = new THREE.CircleGeometry(0.28, 20);
+  for (let x = x0 + 3; x < x1; x += 6) for (let z = z0 + 2.75; z < z1; z += 5.5) {
+    const l = new THREE.Mesh(lampGeo, lampMat); l.rotation.x = Math.PI / 2; l.position.set(x, h - 0.55, z); envelope.add(l);
+  }
+}
+
+/* Pisos das áreas (clicáveis) */
+const pickables = [];
+for (const z of ZONES) {
+  const w = z.x[1] - z.x[0], d = z.z[1] - z.z[0];
+  const cx = (z.x[0] + z.x[1]) / 2, cz = (z.z[0] + z.z[1]) / 2;
+  let mesh;
+  if (z.box) {
+    mesh = box(w, z.box, d, mat(z.color, { emissive: 0x000000 }), cx, z.box / 2, cz);
+  } else {
+    mesh = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.04, d - 0.04),
+      mat(z.color, { transparent: true, opacity: 0.88, emissive: 0x000000 }));
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(cx, 0.012, cz);
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+  }
+  mesh.userData.zone = z.id;
+  z.mesh = mesh;
+  z.center = new THREE.Vector3(cx, 0, cz);
+  z.size = [w, d];
+  pickables.push(mesh);
+}
+
+/* Paredes de tecido (3 m) */
+// tecido preto, como no evento anterior (vídeo do drone)
+const fabricMat = mat(0x17181c, { roughness: 1, side: THREE.DoubleSide });
+function wallX(x, z0, z1, h = 3) { box(0.06, h, z1 - z0, fabricMat, x, h / 2, (z0 + z1) / 2, groups.fabric); }
+function wallZ(z, x0, x1, h = 3) { box(x1 - x0, h, 0.06, fabricMat, (x0 + x1) / 2, h / 2, z, groups.fabric); }
+wallZ(FRONT_Z, 0, W, 4);                           // encostado no porta-paletes, em toda a frente do evento
+wallZ(16.84, 3, 23.5);                              // plenária / túnel
+wallZ(5.74, 36.3, 44.86); wallZ(11.56, 36.3, 44.86); // divisões das salas
+wallX(44.86, 0, 17.4); wallZ(17.4, 36.3, 44.86);   // fundo das salas e passagem oculta
+wallX(35.5, 16.2, 18.8);                            // anteparo do buffet
+
+/* Palco e LED */
+// palco com a largura do LED central (8 m), encostado nele e avançando 3,2 m para a plateia.
+// Altura de 1,0 m: com o LED central (3 m) apoiado nele, o topo fica em 4,0 m, igual às laterais de 4 m apoiadas no piso.
+const STAGE_H = 1.0;
+box(3.175, STAGE_H, 8, mat(0x15171b), 4.8125, STAGE_H / 2, 8.4);
+// escada de acesso na frente do palco
+for (const [x, h] of [[6.55, 0.75], [6.85, 0.5], [7.15, 0.25]]) box(0.3, h, 1.2, mat(0x2a2d33), x, h / 2, 11.2);
+// LED P3.9 (módulos de 50 × 50 cm): central 8 × 3 m e duas laterais 4 × 4 m.
+// Vista da plateia (olhando para −x), a esquerda fica em +z.
+// Logo oficial (versão vertical branca), desenhada sem alterar proporção ou cor
+const logoImg = new Image();
+logoImg.src = 'logo-grupo-arantes.png';
+function pill(g, text, x, y, h, bg, fg, align = 'center') {
+  g.font = `700 ${Math.round(h * 0.56)}px Montserrat, "Segoe UI", sans-serif`;
+  const w = g.measureText(text).width + h * 0.7;
+  const x0 = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+  g.fillStyle = bg; g.beginPath(); g.roundRect(x0, y - h / 2, w, h, h * 0.22); g.fill();
+  g.fillStyle = fg; g.textAlign = 'center'; g.fillText(text, x0 + w / 2, y + h * 0.03);
+}
+function drawLed(cv, name, wM, hM, c1, c2) {
+  const g = cv.getContext('2d'), W2 = cv.width, H2 = cv.height;
+  const cols = wM * 2, rows = hM * 2, cw = W2 / cols, ch = H2 / rows;
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `500 ${Math.round(ch * 0.24)}px Montserrat, "Segoe UI", sans-serif`;
+  for (let r = 0, n = 1; r < rows; r++) for (let c = 0; c < cols; c++, n++) {
+    g.fillStyle = (r + c) % 2 ? c2 : c1; g.fillRect(c * cw, r * ch, cw, ch);
+    g.fillStyle = 'rgba(0,0,0,.38)'; g.fillText(String(n).padStart(2, '0'), c * cw + cw / 2, r * ch + ch / 2);
+  }
+  g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = Math.max(2, H2 * 0.003);
+  g.beginPath(); g.arc(W2 / 2, H2 / 2, Math.min(W2, H2) * 0.48, 0, Math.PI * 2); g.stroke();
+  g.setLineDash([H2 * 0.012, H2 * 0.012]);
+  g.beginPath(); g.arc(W2 / 2, H2 / 2, Math.min(W2, H2) * 0.34, 0, Math.PI * 2); g.stroke();
+  g.strokeRect(2, 2, W2 - 4, H2 - 4);
+  g.setLineDash([]);
+  g.beginPath(); g.moveTo(0, 0); g.lineTo(W2, H2); g.moveTo(W2, 0); g.lineTo(0, H2); g.stroke();
+  // etiquetas do canto: área e medidas, pitch e módulo
+  const tag = H2 * 0.045;
+  pill(g, `${wM * hM} m²  ${wM} × ${hM} m`, tag * 0.3, tag * 0.75, tag, '#000', '#3ef0a6', 'left');
+  pill(g, 'P3.9  50 × 50 cm', W2 - tag * 0.3, tag * 0.75, tag, '#3ef0a6', '#000', 'right');
+  // nome do painel e resolução
+  const big = Math.round(Math.min(W2 / 6.2, H2 * 0.11));
+  g.font = `800 ${big}px Montserrat, "Segoe UI", sans-serif`;
+  g.lineWidth = big * 0.14; g.strokeStyle = '#000'; g.fillStyle = '#fff'; g.lineJoin = 'round';
+  g.strokeText(name, W2 / 2, H2 * 0.4); g.fillText(name, W2 / 2, H2 * 0.4);
+  pill(g, `W ${W2} x H ${H2}`, W2 / 2, H2 * 0.48, big * 0.42, 'rgba(0,0,0,.88)', '#fff');
+  if (logoImg.complete && logoImg.naturalWidth) {
+    const lh = H2 * 0.22, lw = lh * logoImg.naturalWidth / logoImg.naturalHeight;
+    g.drawImage(logoImg, W2 / 2 - lw / 2, H2 * 0.55, lw, lh);
+  }
+}
+const ledPanels = [];
+function ledPanel(name, wM, hM, c1, c2, zc, yBottom, x = 3.15) {
+  const cv = document.createElement('canvas'); cv.width = wM * 256; cv.height = hM * 256;
+  drawLed(cv, name, wM, hM, c1, c2);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const dark = mat(0x0b0c0e);
+  const face = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+  const m = new THREE.Mesh(new THREE.BoxGeometry(0.15, hM, wM), [face, dark, dark, dark, dark, dark]);
+  m.position.set(x, yBottom + hM / 2, zc); m.castShadow = true;
+  scene.add(m);
+  ledPanels.push({ cv, tex, args: [name, wM, hM, c1, c2] });
+}
+// Os três painéis ficam apoiados no chão e terminam em 5,0 m. O CENTRAL (8 × 5 m) fica atrás do palco,
+// que encosta na frente dele e cobre o primeiro 1,0 m. ESQUERDA-1 e DIREITA-2 (4 × 5 m) nas pontas da frente do palco.
+const LED_H = 5, LED_TOP = LED_H;
+ledPanel('DIREITA-2', 4, LED_H, '#e8231f', '#a3120f', 2.4, 0, 6.4);
+ledPanel('CENTRAL', 8, LED_H, '#2b3ff2', '#1a27bf', 8.4, 0);
+ledPanel('ESQUERDA-1', 4, LED_H, '#f2f23c', '#a9a62a', 14.4, 0, 6.4);
+// backdrop do Grupo no credenciamento, de frente para quem sai do túnel
+const bdCv = document.createElement('canvas'); bdCv.width = 1024; bdCv.height = 1024;
+const bdTex = new THREE.CanvasTexture(bdCv); bdTex.colorSpace = THREE.SRGBColorSpace;
+function drawBackdrop() {
+  const g = bdCv.getContext('2d'), s = bdCv.width;
+  const grd = g.createLinearGradient(0, 0, s, s); grd.addColorStop(0, '#18026e'); grd.addColorStop(1, '#0765a5');
+  g.fillStyle = grd; g.fillRect(0, 0, s, s);
+  if (logoImg.complete && logoImg.naturalWidth) {
+    const lh = s * 0.46, lw = lh * logoImg.naturalWidth / logoImg.naturalHeight;
+    g.drawImage(logoImg, s / 2 - lw / 2, s * 0.17, lw, lh);
+  }
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `800 ${s * 0.07}px Montserrat, "Segoe UI", sans-serif`;
+  g.fillText('VALOR QUE', s / 2, s * 0.76);
+  g.fillStyle = '#8fe6f2'; g.font = `400 ${s * 0.07}px Montserrat, "Segoe UI", sans-serif`;
+  g.fillText('TRANSFORMA', s / 2, s * 0.85);
+  bdTex.needsUpdate = true;
+}
+drawBackdrop();
+{
+  const dark = mat(0x0b0c0e);
+  const face = new THREE.MeshStandardMaterial({ map: bdTex, roughness: 0.8, emissive: 0xffffff, emissiveMap: bdTex, emissiveIntensity: 0.35 });
+  const bd = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.1, 2.1), [dark, face, dark, dark, dark, dark]);
+  bd.position.set(27.0, 1.25, 17.95); bd.castShadow = true;
+  scene.add(bd);
+}
+const redrawLeds = () => {
+  ledPanels.forEach(p => { if (p.videoOn) return; drawLed(p.cv, ...p.args); p.tex.needsUpdate = true; });
+  drawBackdrop();
+};
+logoImg.onload = redrawLeds;
+document.fonts?.ready.then(redrawLeds);
+
+// vídeo nos LEDs: cada painel tem o seu, escolhido pelo visitante e rodando só no navegador dele
+for (const p of ledPanels) {
+  p.video = document.createElement('video');
+  p.video.muted = true; p.video.loop = true; p.video.playsInline = true;
+  p.videoOn = false;
+  // no CENTRAL o 1,0 m de baixo fica atrás do palco, então o vídeo ocupa só a parte visível
+  p.visFrac = p.args[0] === 'CENTRAL' ? (LED_H - STAGE_H) / LED_H : 1;
+}
+function drawVideoFrame() {
+  for (const p of ledPanels) {
+    const v = p.video;
+    if (!p.videoOn || v.readyState < 2 || !v.videoWidth) continue;
+    const g = p.cv.getContext('2d'), W2 = p.cv.width, H2 = p.cv.height, visH = H2 * p.visFrac;
+    g.fillStyle = '#000'; g.fillRect(0, 0, W2, H2);
+    const s = Math.max(W2 / v.videoWidth, visH / v.videoHeight), w = v.videoWidth * s, h = v.videoHeight * s;
+    g.save(); g.beginPath(); g.rect(0, 0, W2, visH); g.clip();
+    g.drawImage(v, (W2 - w) / 2, (visH - h) / 2, w, h);
+    g.restore();
+    p.tex.needsUpdate = true;
+  }
+}
+// fechamento de tecido da coxia ao lado do LED central
+box(0.06, LED_TOP, 4.3, fabricMat, 3.15, LED_TOP / 2, 2.25, groups.fabric);
+box(0.06, LED_TOP, 4.44, fabricMat, 3.15, LED_TOP / 2, 14.62, groups.fabric);
+
+/* Proposta de teto fechado: tecido preto a 6,0 m, acima do LED (5,0 m) e do pórtico. Sobre as salas o teto fica aberto.
+   As faces só aparecem por dentro, então de fora o 3D continua visível. */
+const ROOF_H = 6.0;
+const SALAS = { x: [36.3, 44.86], z: [0, 17.4] };
+groups.roof = new THREE.Group(); groups.roof.visible = false; scene.add(groups.roof);
+{
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x121317, roughness: 1 });
+  const inward = (w, h, x, y, z, ry) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), roofMat);
+    m.position.set(x, y, z); m.rotation.y = ry; groups.roof.add(m);
+  };
+  const ceiling = (x0, x1, z0, z1) => {
+    const c = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), roofMat);
+    c.rotation.x = Math.PI / 2; c.position.set((x0 + x1) / 2, ROOF_H, (z0 + z1) / 2);
+    groups.roof.add(c);
+  };
+  ceiling(0, SALAS.x[0], FRONT_Z, D);              // faixa de pedestre, palco, plenária, túnel e coffee
+  ceiling(SALAS.x[1], W, FRONT_Z, D);              // apoio
+  ceiling(SALAS.x[0], SALAS.x[1], FRONT_Z, 0);     // faixa de pedestre na frente das salas
+  ceiling(SALAS.x[0], SALAS.x[1], SALAS.z[1], D);  // passagem oculta
+  const DEPTH = D - FRONT_Z, DOOR_Z1 = 1.15;
+  inward(DEPTH, ROOF_H, 0, ROOF_H / 2, (D + FRONT_Z) / 2, Math.PI / 2);                 // lado da coxia
+  inward(D - DOOR_Z1, ROOF_H, W, ROOF_H / 2, (D + DOOR_Z1) / 2, -Math.PI / 2);          // lado do apoio, deixando o vão da porta
+  inward(DOOR_Z1 - FRONT_Z, ROOF_H - 5.5, W, 5.5 + (ROOF_H - 5.5) / 2, (DOOR_Z1 + FRONT_Z) / 2, -Math.PI / 2);
+  inward(W - 2.1, ROOF_H, 2.1 + (W - 2.1) / 2, ROOF_H / 2, D, Math.PI); // lado do túnel, com vão da escada
+  inward(2.1, ROOF_H - 2.4, 1.05, 2.4 + (ROOF_H - 2.4) / 2, D, Math.PI);
+  inward(W, ROOF_H - 4, W / 2, 4 + (ROOF_H - 4) / 2, FRONT_Z + 0.04, 0);  // faixa acima do tecido do porta-paletes
+}
+
+/* ---------- Iluminação cênica: pórtico de treliça no LED central e treliça no meio da plenária ---------- */
+const show = new THREE.Group(), fx = new THREE.Group();
+scene.add(show, fx);
+const trussMat = mat(0xa7adb5, { metalness: 0.8, roughness: 0.35 });
+const tubeGeo = new THREE.CylinderGeometry(1, 1, 1, 6);
+const UP = new THREE.Vector3(0, 1, 0);
+function tube(a, b, r) {
+  const d = b.clone().sub(a), m = new THREE.Mesh(tubeGeo, trussMat);
+  m.scale.set(r, d.length(), r);
+  m.position.copy(a).addScaledVector(d, 0.5);
+  m.quaternion.setFromUnitVectors(UP, d.normalize());
+  show.add(m);
+}
+// treliça quadrada de 30 cm entre dois pontos, com diagonais a cada 50 cm
+function truss(a, b, s = 0.3) {
+  const dir = b.clone().sub(a), L = dir.length(); dir.normalize();
+  const side = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : UP;
+  const u = new THREE.Vector3().crossVectors(dir, side).normalize().multiplyScalar(s / 2);
+  const v = new THREE.Vector3().crossVectors(dir, u).normalize().multiplyScalar(s / 2);
+  const corners = [u.clone().add(v), u.clone().sub(v), u.clone().negate().sub(v), u.clone().negate().add(v)];
+  for (const c of corners) tube(a.clone().add(c), b.clone().add(c), 0.025);
+  const bays = Math.max(1, Math.round(L / 0.5));
+  for (let i = 0; i < bays; i++) {
+    const p0 = a.clone().addScaledVector(dir, (L * i) / bays), p1 = a.clone().addScaledVector(dir, (L * (i + 1)) / bays);
+    for (let k = 0; k < 4; k++) {
+      const c0 = corners[k], c1 = corners[(k + 1) % 4];
+      tube(p0.clone().add(i % 2 ? c0 : c1), p1.clone().add(i % 2 ? c1 : c0), 0.012);
+    }
+  }
+}
+// pórtico em volta do LED central (torres nas pontas e travessa acima do topo de 4,0 m)
+const PORTAL_X = 3.5, PORTAL_TOP = LED_TOP + 0.3, PZ = [4.05, 12.75];
+for (const z of PZ) { truss(new THREE.Vector3(PORTAL_X, 0, z), new THREE.Vector3(PORTAL_X, PORTAL_TOP, z)); box(0.6, 0.03, 0.6, mat(0x2a2d33), PORTAL_X, 0.015, z, show, false); }
+truss(new THREE.Vector3(PORTAL_X, PORTAL_TOP, PZ[0] - 0.15), new THREE.Vector3(PORTAL_X, PORTAL_TOP, PZ[1] + 0.15));
+// treliça no meio da plenária, paralela ao palco
+const MID_X = 16, MID_TOP = 5.2, MZ = [0.55, 16.35];
+for (const z of MZ) { truss(new THREE.Vector3(MID_X, 0, z), new THREE.Vector3(MID_X, MID_TOP, z)); box(0.6, 0.03, 0.6, mat(0x2a2d33), MID_X, 0.015, z, show, false); }
+truss(new THREE.Vector3(MID_X, MID_TOP, MZ[0] - 0.15), new THREE.Vector3(MID_X, MID_TOP, MZ[1] + 0.15));
+
+// refletores com facho visível; alguns também iluminam a cena
+const fixtureMat = mat(0x111215, { roughness: 0.5 });
+const bodyGeo = new THREE.CylinderGeometry(0.12, 0.15, 0.32, 14).rotateX(Math.PI / 2);
+const lensGeo = new THREE.CircleGeometry(0.11, 16);
+const movers = [];
+function fixture(pos, target, color, { spread = 0.1, light = false, sway = 0 } = {}) {
+  const head = new THREE.Group();
+  head.position.copy(pos); show.add(head);
+  head.add(new THREE.Mesh(bodyGeo, fixtureMat));
+  const lens = new THREE.Mesh(lensGeo, new THREE.MeshBasicMaterial({ color, toneMapped: false }));
+  lens.position.z = 0.165; head.add(lens);
+  const L = pos.distanceTo(target);
+  const beamGeo = new THREE.ConeGeometry(L * spread, L, 24, 1, true).translate(0, -L / 2, 0).rotateX(-Math.PI / 2);
+  const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+  beam.position.z = 0.16; head.add(beam);
+  head.lookAt(target);
+  if (light) {
+    const sl = new THREE.SpotLight(color, 70, 0, Math.atan(spread) * 1.6, 0.6, 2);
+    sl.position.copy(pos); sl.target.position.copy(target);
+    scene.add(sl, sl.target);
+  }
+  if (sway) movers.push({ head, target: target.clone(), sway, phase: movers.length * 1.3 });
+  beams.push(beam);
+}
+const beams = [];
+const aim = new THREE.Vector3();
+function swayMovers(t) {
+  if (reduceMotion) return;
+  for (const m of movers) {
+    const s = t * 0.0006 + m.phase;
+    aim.copy(m.target); aim.z += Math.sin(s) * m.sway * 2; aim.x += Math.cos(s * 0.7) * m.sway;
+    m.head.lookAt(aim);
+  }
+}
+// moving heads pendurados na travessa do pórtico, abrindo em leque para a plateia
+[6.2, 10.6].forEach((z, i) => fixture(
+  new THREE.Vector3(PORTAL_X + 0.3, PORTAL_TOP - 0.3, z),
+  new THREE.Vector3(15, 0, 8.4 + (z - 8.4) * 2.2), i % 2 ? 0x4f7dff : 0xf4f0ff, { spread: 0.06, sway: 1.6 }));
+// PARs nas torres do pórtico, luz âmbar para a frente (um por torre)
+for (const z of PZ) for (const h of [3.4]) fixture(
+  new THREE.Vector3(PORTAL_X + 0.3, h, z), new THREE.Vector3(12, h * 0.5, z + (z < 8 ? -2 : 2)), 0xffb347, { spread: 0.07 });
+// luz frontal: refletores da treliça do meio apontados para o palco
+[3.2, 7.0, 9.8, 13.6].forEach((z, i) => fixture(
+  new THREE.Vector3(MID_X - 0.25, MID_TOP - 0.3, z), new THREE.Vector3(5.2, STAGE_H + 1.2, 8.4 + (z - 8.4) * 0.35),
+  0xfff4e0, { spread: 0.08, light: i === 1 || i === 2 }));
+// luz de palco vinda do pórtico
+fixture(new THREE.Vector3(PORTAL_X + 0.3, PORTAL_TOP - 0.3, 8.4), new THREE.Vector3(5.6, STAGE_H, 8.4), 0xffffff, { spread: 0.16, light: true });
+
+// máquinas de faísca fria nas pontas da frente do palco
+const sparks = [];
+function sparkFountain(x, z) {
+  box(0.35, 0.25, 0.35, mat(0x0b0c0e), x, STAGE_H + 0.125, z, show);
+  const N = 280, pos = new Float32Array(N * 3), vel = new Float32Array(N * 3), life = new Float32Array(N);
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0xffd27a, size: 0.07, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  pts.frustumCulled = false; fx.add(pts);
+  const f = { x, y: STAGE_H + 0.26, z, pos, vel, life, geo, N };
+  for (let i = 0; i < N; i++) { resetSpark(f, i); f.life[i] = -Math.random() * 1.3; }
+  sparks.push(f);
+}
+function resetSpark(f, i) {
+  const a = Math.random() * Math.PI * 2, r = Math.random() * 0.45;
+  f.pos.set([f.x, f.y, f.z], i * 3);
+  f.vel.set([Math.cos(a) * r, 5.6 + Math.random() * 1.6, Math.sin(a) * r], i * 3);
+  f.life[i] = 0;
+}
+function updateSparks(dt) {
+  for (const f of sparks) {
+    for (let i = 0; i < f.N; i++) {
+      f.life[i] += dt;
+      const k = i * 3;
+      if (f.life[i] < 0) { f.pos[k] = f.x; f.pos[k + 1] = -5; f.pos[k + 2] = f.z; continue; }
+      f.vel[k + 1] -= 9.8 * dt;
+      f.pos[k] += f.vel[k] * dt; f.pos[k + 1] += f.vel[k + 1] * dt; f.pos[k + 2] += f.vel[k + 2] * dt;
+      if (f.pos[k + 1] < f.y || f.life[i] > 1.4) resetSpark(f, i);
+    }
+    f.geo.attributes.position.needsUpdate = true;
+  }
+}
+/* ---------- Corredor interativo: túnel 100% fechado, com fumaça e luz colorida ---------- */
+const CX = [0, 23.5], CZ = [16.84, 19], CH = 3.0;
+const corridor = new THREE.Group(); scene.add(corridor);
+{
+  // Tema de nave espacial, como no túnel do ano passado: painéis impressos com tubulações, janelas com planeta
+  // e escotilhas redondas no teto, tudo em violeta.
+  const TPX = 128;  // pixels por metro
+  let sd = 11; const rr = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const panelGrid = (g, w, h, cell) => {
+    g.strokeStyle = 'rgba(170,140,255,.55)'; g.lineWidth = 4;
+    for (let x = 0; x < w; x += cell[0]) for (let y = 0; y < h; y += cell[1]) {
+      g.beginPath(); g.roundRect(x + 10, y + 10, cell[0] - 20, cell[1] - 20, 18); g.stroke();
+    }
+  };
+  // parede: 8 m × 3 m, uma janela com planeta por módulo
+  const wc = document.createElement('canvas'); wc.width = 8 * TPX; wc.height = 3 * TPX;
+  {
+    const g = wc.getContext('2d'), W2 = wc.width, H2 = wc.height;
+    const bg = g.createLinearGradient(0, 0, 0, H2); bg.addColorStop(0, '#3a1d86'); bg.addColorStop(1, '#22105a');
+    g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
+    panelGrid(g, W2, H2, [TPX * 1.0, TPX * 0.75]);
+    for (const [y, t] of [[0.16, 22], [0.25, 14]]) {   // tubulações no alto
+      const pg = g.createLinearGradient(0, H2 * y - t, 0, H2 * y + t);
+      pg.addColorStop(0, '#2a1468'); pg.addColorStop(0.5, '#9a7cf0'); pg.addColorStop(1, '#2a1468');
+      g.fillStyle = pg; g.fillRect(0, H2 * y - t, W2, t * 2);
+    }
+    const cx = W2 * 0.55, cy = H2 * 0.55, R = H2 * 0.3;  // janela redonda
+    g.fillStyle = '#05031a'; g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
+    g.save(); g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.clip();
+    for (let i = 0; i < 90; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + rr() * 0.7})`; g.fillRect(cx - R + rr() * R * 2, cy - R + rr() * R * 2, 2, 2); }
+    const pl = g.createRadialGradient(cx - R * 0.15, cy - R * 0.2, R * 0.1, cx, cy, R * 0.75);
+    pl.addColorStop(0, '#ffb27a'); pl.addColorStop(0.6, '#e0663a'); pl.addColorStop(1, '#8a2f24');
+    g.fillStyle = pl; g.beginPath(); g.arc(cx + R * 0.1, cy + R * 0.05, R * 0.7, 0, Math.PI * 2); g.fill();
+    for (let i = 0; i < 14; i++) { g.fillStyle = 'rgba(120,40,30,.35)'; g.beginPath(); g.arc(cx - R * 0.4 + rr() * R, cy - R * 0.4 + rr() * R, 4 + rr() * 14, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    g.lineWidth = 22; g.strokeStyle = '#7a5ad8'; g.beginPath(); g.arc(cx, cy, R + 11, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 6; g.strokeStyle = '#c9b6ff'; g.beginPath(); g.arc(cx, cy, R + 26, 0, Math.PI * 2); g.stroke();
+  }
+  // teto: 4 m × 2,16 m com escotilha redonda no meio
+  const cc = document.createElement('canvas'); cc.width = 4 * TPX; cc.height = Math.round(2.16 * TPX);
+  {
+    const g = cc.getContext('2d'), W2 = cc.width, H2 = cc.height;
+    g.fillStyle = '#2c1670'; g.fillRect(0, 0, W2, H2);
+    panelGrid(g, W2, H2, [TPX * 0.8, TPX * 0.72]);
+    for (const [r, c, lw] of [[0.42, '#8c6ef0', 26], [0.3, '#5b3bb0', 18], [0.18, '#b49cff', 10]]) {
+      g.lineWidth = lw; g.strokeStyle = c; g.beginPath(); g.ellipse(W2 / 2, H2 / 2, H2 * r * 1.3, H2 * r, 0, 0, Math.PI * 2); g.stroke();
+    }
+  }
+  const spaceMat = (canvas, repX) => {
+    const t = new THREE.CanvasTexture(canvas); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(repX, 1);
+    return mat(0xffffff, { map: t, roughness: 0.85, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.22 });
+  };
+  const outMat = new THREE.MeshStandardMaterial({ color: 0x0d0c22, roughness: 1, transparent: true, opacity: 0.6, depthWrite: false });
+  const plane = (m, w, h, x, y, z, rx, ry) => {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+    p.position.set(x, y, z); p.rotation.set(rx, ry, 0); corridor.add(p);
+  };
+  const L = CX[1] - CX[0], cx = (CX[0] + CX[1]) / 2, Wd = CZ[1] - CZ[0], cz = (CZ[0] + CZ[1]) / 2;
+  // faces internas, revestidas
+  plane(spaceMat(cc, L / 4), L, Wd, cx, CH, cz, Math.PI / 2, 0);                                  // teto
+  plane(spaceMat(wc, L / 8), L, CH, cx, CH / 2, CZ[0] + 0.04, 0, 0);                              // lado da plenária e da coxia
+  plane(spaceMat(wc, (L - 2.1) / 8), L - 2.1, CH, 2.1 + (L - 2.1) / 2, CH / 2, CZ[1] - 0.02, 0, Math.PI); // lado externo
+  plane(spaceMat(wc, 0.3 / 8), 0.3, CH, 0.15, CH / 2, CZ[1] - 0.02, 0, Math.PI);
+  plane(spaceMat(wc, 1.8 / 8), 1.8, CH - 2.4, 1.2, 2.4 + (CH - 2.4) / 2, CZ[1] - 0.02, 0, Math.PI); // acima da porta da escada
+  plane(spaceMat(wc, Wd / 8), Wd, CH, CX[0] + 0.02, CH / 2, cz, 0, Math.PI / 2);                  // fundo
+  // faces externas, escurecidas, deixando ver a fumaça
+  plane(outMat, L, Wd, cx, CH + 0.01, cz, -Math.PI / 2, 0);
+  plane(outMat, L - 2.1, CH, 2.1 + (L - 2.1) / 2, CH / 2, CZ[1] + 0.01, 0, 0);
+  plane(outMat, 0.3, CH, 0.15, CH / 2, CZ[1] + 0.01, 0, 0);
+  plane(outMat, 1.8, CH - 2.4, 1.2, 2.4 + (CH - 2.4) / 2, CZ[1] + 0.01, 0, 0);
+  plane(outMat, Wd, CH, CX[0] - 0.01, CH / 2, cz, 0, -Math.PI / 2);
+  plane(outMat, 3, CH, 1.5, CH / 2, CZ[0] - 0.01, 0, Math.PI);                     // trecho junto à coxia
+}
+// fitas de LED no piso e no teto, com cor correndo pelo corredor
+const stripSegs = [], tunnelLights = [];
+{
+  const geo = new THREE.BoxGeometry(0.9, 0.03, 0.04);
+  const add = (x, y, z) => {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ toneMapped: false }));
+    m.position.set(x, y, z); corridor.add(m); stripSegs.push(m);
+  };
+  for (let x = 0.75; x < CX[1]; x += 0.95) { add(x, 0.03, CZ[0] + 0.12); add(x, 0.03, CZ[1] - 0.12); }   // fita no rodapé
+  for (const x of [2.5, 7, 11.5, 16, 20.5]) {
+    const l = new THREE.PointLight(0x00b9cf, 6, 6, 2);
+    l.position.set(x, 2.5, (CZ[0] + CZ[1]) / 2); corridor.add(l); tunnelLights.push(l);
+  }
+}
+// luz violeta e roxa em onda lenta ao longo do corredor, como no túnel do ano passado
+const hueAt = (x, s) => 0.71 + 0.1 * (0.5 + 0.5 * Math.sin(x * 0.3 - s * 1.0));
+// fumaça densa (máquina de fumaça), colorida pela luz
+const SN = 560, smokePos = new Float32Array(SN * 3), smokeCol = new Float32Array(SN * 3), smokeSeed = new Float32Array(SN);
+for (let i = 0; i < SN; i++) {
+  smokePos.set([CX[0] + 0.2 + Math.random() * (CX[1] - 0.4), 0.15 + Math.pow(Math.random(), 2) * 2.3, CZ[0] + 0.15 + Math.random() * (CZ[1] - CZ[0] - 0.3)], i * 3);
+  smokeSeed[i] = Math.random() * Math.PI * 2;
+}
+const smokeGeo = new THREE.BufferGeometry();
+smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3));
+smokeGeo.setAttribute('color', new THREE.BufferAttribute(smokeCol, 3));
+{
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  r.addColorStop(0, 'rgba(255,255,255,.5)'); r.addColorStop(0.5, 'rgba(255,255,255,.16)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+  const smoke = new THREE.Points(smokeGeo, new THREE.PointsMaterial({
+    size: 1.6, map: new THREE.CanvasTexture(c), vertexColors: true, transparent: true, opacity: 0.6, depthWrite: false, toneMapped: false }));
+  smoke.frustumCulled = false; fx.add(smoke);
+}
+// painel de boas-vindas logo na entrada, de frente para quem sobe a escada (texto e arte podem ser trocados)
+const wlCv = document.createElement('canvas'); wlCv.width = 600; wlCv.height = 650;
+const wlTex = new THREE.CanvasTexture(wlCv); wlTex.colorSpace = THREE.SRGBColorSpace;
+function drawWelcome() {
+  const g = wlCv.getContext('2d'), W2 = wlCv.width, H2 = wlCv.height;
+  const bg = g.createLinearGradient(0, 0, 0, H2); bg.addColorStop(0, '#5a2bd0'); bg.addColorStop(1, '#2a1480');
+  g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 3; g.beginPath(); g.arc(W2 / 2, H2 * 0.72, W2 * 0.34, 0, Math.PI * 2); g.stroke();
+  const star = (x, y, r, c) => { g.fillStyle = c; g.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rad = i % 2 ? r * 0.35 : r; g.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad); } g.fill(); };
+  star(40, 40, 34, '#ff5fb8'); star(W2 - 40, 40, 34, '#ff5fb8'); star(W2 - 70, H2 - 120, 40, '#ff5fb8');
+  for (let i = 0; i < 6; i++) star(150 + i * 60, H2 * 0.62 + (i % 2) * 120, 7, '#ffffff');
+  g.fillStyle = '#ffffff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '700 30px Montserrat, "Segoe UI", sans-serif'; g.fillText('✦ BOAS VINDAS ✦', W2 / 2, 110);
+  g.font = '800 54px Montserrat, "Segoe UI", sans-serif'; g.fillText('PLANEJAMENTO', W2 / 2, 180); g.fillText('ESTRATÉGICO 2027', W2 / 2, 240);
+  if (logoImg.complete && logoImg.naturalWidth) {
+    const lh = 230, lw = lh * logoImg.naturalWidth / logoImg.naturalHeight;
+    g.drawImage(logoImg, W2 / 2 - lw / 2, 330, lw, lh);
+  }
+  wlTex.needsUpdate = true;
+}
+drawWelcome();
+logoImg.addEventListener('load', drawWelcome);
+document.fonts?.ready.then(drawWelcome);
+{
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.5), mat(0xffffff, { map: wlTex, roughness: 0.7, emissive: 0xffffff, emissiveMap: wlTex, emissiveIntensity: 0.45 }));
+  p.position.set(1.25, 1.35, CZ[0] + 0.06); corridor.add(p);
+}
+// areia no piso do corredor (entre as fitas de LED do rodapé), com ondulação leve, e luz vermelha direcionada sobre ela
+{
+  const sc = document.createElement('canvas'); sc.width = 512; sc.height = 256;
+  const g = sc.getContext('2d');
+  g.fillStyle = '#c4894f'; g.fillRect(0, 0, 512, 256);
+  let s = 5; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 9000; i++) { const v = r(); g.fillStyle = v < 0.5 ? `rgba(120,70,35,${0.15 + r() * 0.25})` : `rgba(240,200,150,${0.12 + r() * 0.25})`; g.fillRect(r() * 512, r() * 256, 1 + r() * 2, 1 + r() * 2); }
+  g.strokeStyle = 'rgba(110,62,30,.22)'; g.lineWidth = 3;
+  for (let y = 10; y < 256; y += 22) { g.beginPath(); for (let x = 0; x <= 512; x += 16) g.lineTo(x, y + Math.sin(x * 0.03 + y) * 6); g.stroke(); }
+  const tex = new THREE.CanvasTexture(sc); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  const SZ = [CZ[0] + 0.25, CZ[1] - 0.25], SL = CX[1] - CX[0] - 0.2, SW = SZ[1] - SZ[0];
+  tex.repeat.set(SL / 3, SW / 1.5);
+  const geo = new THREE.PlaneGeometry(SL, SW, 140, 10);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), edge = 1 - Math.pow(Math.abs(y) / (SW / 2), 3);
+    pos.setZ(i, (0.025 + 0.018 * Math.sin(x * 2.1 + y * 3) + 0.01 * Math.sin(x * 5.3)) * edge);
+  }
+  geo.computeVertexNormals();
+  const sand = new THREE.Mesh(geo, mat(0xffffff, { map: tex, roughness: 1 }));
+  sand.rotation.x = -Math.PI / 2; sand.position.set((CX[0] + CX[1]) / 2, 0.015, (SZ[0] + SZ[1]) / 2); sand.receiveShadow = true;
+  corridor.add(sand);
+  // refletores vermelhos no teto apontados para a areia, com a mancha de luz desenhada no chão
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128;
+  const gg = gc.getContext('2d'), rg = gg.createRadialGradient(64, 64, 0, 64, 64, 64);
+  rg.addColorStop(0, 'rgba(255,40,30,.9)'); rg.addColorStop(0.5, 'rgba(230,20,20,.35)'); rg.addColorStop(1, 'rgba(200,0,0,0)');
+  gg.fillStyle = rg; gg.fillRect(0, 0, 128, 128);
+  const pool = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const head = mat(0x111215, { roughness: 0.5 });
+  const cz = (CZ[0] + CZ[1]) / 2;
+  for (const x of [3.5, 8, 12.5, 17, 21.5]) {
+    const sl = new THREE.SpotLight(0xff2a1a, 16, 6, 0.45, 0.7, 2);
+    sl.position.set(x - 0.6, CH - 0.15, cz); sl.target.position.set(x, 0, cz);
+    corridor.add(sl, sl.target);
+    const f = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.18, 12), head);
+    f.position.copy(sl.position); f.lookAt(sl.target.position); f.rotateX(Math.PI / 2); corridor.add(f);
+    const decal = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.5), pool);
+    decal.rotation.x = -Math.PI / 2; decal.position.set(x, 0.075, cz); fx.add(decal);
+  }
+}
+const tmpC = new THREE.Color();
+function updateCorridor(t, dt) {
+  const s = reduceMotion ? 0 : t / 1000;
+  for (const m of stripSegs) m.material.color.setHSL(hueAt(m.position.x, s), 1, 0.55);
+  for (const l of tunnelLights) l.color.setHSL(hueAt(l.position.x, s), 1, 0.55);
+  if (!fx.visible) return;
+  for (let i = 0; i < SN; i++) {
+    const k = i * 3;
+    if (!reduceMotion) {
+      smokePos[k] += Math.sin(s * 0.4 + smokeSeed[i]) * 0.12 * dt;
+      smokePos[k + 1] += 0.05 * dt;
+      smokePos[k + 2] += Math.cos(s * 0.3 + smokeSeed[i]) * 0.04 * dt;
+      if (smokePos[k + 1] > 2.6) smokePos[k + 1] = 0.15;
+      smokePos[k + 2] = Math.min(CZ[1] - 0.15, Math.max(CZ[0] + 0.15, smokePos[k + 2]));
+    }
+    tmpC.setHSL(hueAt(smokePos[k], s), 0.9, 0.6);
+    smokeCol[k] = tmpC.r; smokeCol[k + 1] = tmpC.g; smokeCol[k + 2] = tmpC.b;
+  }
+  smokeGeo.attributes.position.needsUpdate = true;
+  smokeGeo.attributes.color.needsUpdate = true;
+}
+
+// luz azul de baixo para cima no tecido preto e climatizadores encostados, como no evento anterior
+{
+  const gc = document.createElement('canvas'); gc.width = 64; gc.height = 256;
+  const g = gc.getContext('2d'), grd = g.createLinearGradient(0, 256, 0, 0);
+  grd.addColorStop(0, 'rgba(70,110,255,1)'); grd.addColorStop(0.35, 'rgba(50,80,255,.55)'); grd.addColorStop(1, 'rgba(40,60,255,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, 64, 256);
+  const side = g.createLinearGradient(0, 0, 64, 0);
+  side.addColorStop(0, 'rgba(0,0,0,1)'); side.addColorStop(0.5, 'rgba(0,0,0,0)'); side.addColorStop(1, 'rgba(0,0,0,1)');
+  g.globalCompositeOperation = 'destination-out'; g.fillStyle = side; g.fillRect(0, 0, 64, 256);
+  const glowMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const fixtureGeo = new THREE.BoxGeometry(0.18, 0.12, 0.14);
+  const uplight = (x, z, ry) => {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 2.8), glowMat);
+    p.position.set(x, 1.4, z); p.rotation.y = ry; fx.add(p);
+    const f = new THREE.Mesh(fixtureGeo, mat(0x0b0c0e)); f.position.set(x, 0.06, z + (ry ? -0.12 : 0.12)); scene.add(f);
+  };
+  for (let x = 8; x < 36; x += 5) uplight(x, FRONT_Z + 0.08, 0);  // tecido do porta-paletes, plenária e coffee
+  for (let x = 8; x < 23; x += 5) uplight(x, 16.78, Math.PI);   // tecido entre plenária e corredor
+  // climatizadores evaporativos encostados no tecido
+  const cool = mat(0xe9eaec, { roughness: 0.6 }), grille = mat(0x8d9096, { roughness: 0.7 });
+  for (const x of [10.5, 21.5, 31]) {
+    box(0.7, 1.9, 0.5, cool, x, 0.95, FRONT_Z + 0.3);
+    box(0.6, 1.3, 0.02, grille, x, 1.1, FRONT_Z + 0.56, scene, false);
+  }
+}
+
+sparkFountain(6.05, 4.75);
+sparkFountain(6.05, 12.05);
+if (reduceMotion) for (let i = 0; i < 40; i++) updateSparks(0.03);
+// púlpito
+box(0.5, 1.1, 0.6, mat(0x2a2d33), 6.0, STAGE_H + 0.55, 6.2);
+
+/* Porta-paletes: fechamento vermelho na frente e racks atrás */
+{
+  const g = groups.rack;
+  // Como nas fotos: montantes azuis, longarinas laranja, 7 níveis até ~12 m, protetores amarelos e paletes filmados.
+  // As fileiras ficam de topo para o evento: correm do fechamento até o fundo do galpão, com corredores entre elas.
+  // Na frente das pontas passa um corredor transversal com a faixa de pedestre.
+  const upr = mat(0x1f45b8, { roughness: 0.5, metalness: 0.35 });
+  const beam = mat(0xe8561e, { roughness: 0.55, metalness: 0.25 });
+  const guard = mat(0xf3c01a, { roughness: 0.5, metalness: 0.2 });
+  const RX0 = -0.6, RX1 = 48.6, BAY = 2.7, RH = 11.9;
+  const Z_FRONT = -2.6, Z_BACK = Z_FRONT - BAY * 4;           // 4 vãos de 2,7 m até perto da parede do fundo
+  const LEVELS = [0.15, 1.8, 3.45, 5.1, 6.75, 8.4, 10.05];
+  const ROW_PITCH = 5.6, AISLE = 3.2;                           // fileira dupla de 2,4 m + corredor de 3,2 m
+  const rowCenters = [];
+  // a última fileira para antes da parede de concreto, deixando o corredor lateral por onde corre a folha da porta
+  for (let x = 2.0; x + 1.2 < RX1 - 5; x += ROW_PITCH) rowCenters.push(x);
+  const bays = [];
+  for (let z = Z_FRONT; z >= Z_BACK - 0.01; z -= BAY) bays.push(z);
+  const inst = (geo, material, list, shadow = false) => {
+    const im = new THREE.InstancedMesh(geo, material, list.length), o = new THREE.Object3D();
+    list.forEach((p, i) => {
+      o.position.set(p[0], p[1], p[2]); o.scale.set(p[3] || 1, p[4] || 1, p[5] || 1); o.updateMatrix();
+      im.setMatrixAt(i, o.matrix);
+      if (p[6] !== undefined) im.setColorAt(i, new THREE.Color(p[6]));
+    });
+    im.castShadow = shadow; im.receiveShadow = true; g.add(im);
+    return im;
+  };
+  const unit = new THREE.BoxGeometry(1, 1, 1);
+  const uprights = [], guards = [], beams = [], pallets = [], woods = [];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const FILM = [0xd9c2a0, 0xc9a882, 0xeae6e0, 0xe0c8d8, 0xcfe3c9, 0xece2b2, 0xe6cfd2, 0xc9d3e2, 0xb99c7a, 0xd8d0f0];
+  const len = Z_FRONT - Z_BACK, zMid = (Z_FRONT + Z_BACK) / 2;
+  for (const xc of rowCenters) {
+    // dois racks costas com costas: faces do corredor em xc ± 1.2, fundos em xc ± 0.1
+    for (const [xa, xb] of [[xc - 1.2, xc - 0.1], [xc + 0.1, xc + 1.2]]) {
+      for (const z of bays) uprights.push([xa, RH / 2, z, 0.1, RH, 0.1], [xb, RH / 2, z, 0.1, RH, 0.1]);
+      for (const y of [...LEVELS, LEVELS[LEVELS.length - 1] + 1.65]) {
+        beams.push([xa, y, zMid, 0.06, 0.12, len], [xb, y, zMid, 0.06, 0.12, len]);
+      }
+      const x = (xa + xb) / 2;
+      for (let b = 0; b < bays.length - 1; b++) for (const y of LEVELS) for (const k of [0.25, 0.75]) {
+        if (rnd() < 0.1) continue;
+        const h = 1.15 + rnd() * 0.3, z = bays[b] - BAY * k;
+        woods.push([x, y + 0.13, z, 1.0, 0.14, 1.15]);
+        pallets.push([x, y + 0.2 + h / 2, z, 0.98, h, 1.1 - rnd() * 0.08, FILM[Math.floor(rnd() * FILM.length)]]);
+      }
+    }
+    // protetor amarelo atravessando a ponta da fileira, virada para o evento, e cantoneiras nos montantes
+    guards.push([xc, 0.25, Z_FRONT + 0.2, 2.5, 0.32, 0.14]);
+    for (const x of [xc - 1.2, xc + 1.2]) guards.push([x, 0.2, Z_FRONT + 0.12, 0.22, 0.4, 0.3]);
+  }
+  inst(unit, upr, uprights, true);
+  inst(unit, guard, guards);
+  inst(unit, beam, beams);
+  inst(unit, mat(0x8a6a44, { roughness: 0.9 }), woods);
+  inst(unit, mat(0xffffff, { roughness: 0.45, metalness: 0.05 }), pallets);
+  // faixas do piso nos corredores dos racks: linhas brancas e faixa de pedestre amarela e branca
+  const white = new THREE.MeshBasicMaterial({ color: 0xf2f2f0 }), yellow = new THREE.MeshBasicMaterial({ color: 0xf3c01a });
+  const flat = (w, d, m, x, z) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, d), m); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.006, z); g.add(p); };
+  // linhas brancas nas bordas de cada corredor, do fechamento até o fundo
+  const zWall = GALPAO.z0 + 0.1;
+  for (const xc of rowCenters) for (const x of [xc - 1.35, xc + 1.35]) flat(0.1, Z_FRONT - zWall, white, x, (Z_FRONT + zWall) / 2);
+  // faixa de pedestre transversal do lado de dentro do evento, entre o tecido (encostado nos racks) e as áreas
+  const zp = -1.1;
+  flat(RX1 - RX0, 0.06, yellow, (RX0 + RX1) / 2, zp - 0.32); flat(RX1 - RX0, 0.06, yellow, (RX0 + RX1) / 2, zp + 0.32);
+  for (let x = RX0 + 0.3; x < RX1; x += 1.2) flat(0.6, 0.5, white, x, zp);
+  // fechamento (tela vermelha, 2,5 m)
+  box(W + 0.4, 2.5, 0.04, mat(0xe0473c, { transparent: true, opacity: 0.55, side: THREE.DoubleSide, emissive: 0x3a0a06 }), 24, 1.25, FRONT_Z - 0.04, g, false);
+}
+
+/* Escada externa e saída */
+{
+  const stepMat = mat(0xb9bcc2);
+  for (let i = 0; i < 6; i++) {
+    const top = -0.2 * i, h = top + 1.25;
+    box(1.8, h, 0.36, stepMat, 1.2, -1.25 + h / 2, 19.18 + 0.36 * i);
+  }
+  box(0.04, 1.0, 2.3, mat(0xf2a630, { metalness: 0.4 }), 0.28, 0.0, 20.1);
+  box(0.04, 1.0, 2.3, mat(0xf2a630, { metalness: 0.4 }), 2.12, 0.0, 20.1);
+}
+
+/* ---------- Mobiliário ---------- */
+const chairSeat = new THREE.BoxGeometry(0.46, 0.06, 0.46);
+const chairBack = new THREE.BoxGeometry(0.46, 0.42, 0.05);
+function chairs(list, color, parent) {
+  const m = mat(color, { roughness: 0.7 });
+  const seats = new THREE.InstancedMesh(chairSeat, m, list.length);
+  const backs = new THREE.InstancedMesh(chairBack, m, list.length);
+  const o = new THREE.Object3D(), c = new THREE.Object3D();
+  o.add(c);
+  list.forEach((p, i) => {
+    o.position.set(p.x, 0, p.z);
+    o.rotation.y = Math.atan2(-p.dx, -p.dz);   // frente da cadeira apontando para (dx, dz)
+    c.position.set(0, 0.46, 0); o.updateMatrixWorld(true); seats.setMatrixAt(i, c.matrixWorld);
+    c.position.set(0, 0.7, 0.21); o.updateMatrixWorld(true); backs.setMatrixAt(i, c.matrixWorld);
+  });
+  for (const im of [seats, backs]) { im.castShadow = true; im.receiveShadow = true; parent.add(im); }
+}
+function roundTable(x, z, r, h, parent, color = 0x26282d) {
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.04, 28), mat(color, { roughness: 0.6 }));
+  top.position.set(x, h, z);
+  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, h, 10), mat(0x15161a));
+  leg.position.set(x, h / 2, z);
+  const foot = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.55, r * 0.55, 0.03, 20), mat(0x15161a));
+  foot.position.set(x, 0.015, z);
+  for (const m of [top, leg, foot]) { m.castShadow = true; m.receiveShadow = true; parent.add(m); }
+}
+
+// Dia 5: 240 cadeiras
+{
+  const list = [];
+  for (let r = 0; r < 12; r++) {
+    const x = 10.2 + r;
+    for (let s = 0; s < 10; s++) {
+      list.push({ x, z: 1.85 + s * 0.55, dx: -1, dz: 0 });
+      list.push({ x, z: 10.25 + s * 0.55, dx: -1, dz: 0 });
+    }
+  }
+  chairs(list, 0x9aa0a8, groups.d5);
+}
+// Dias 1 a 4: Workshop A e B, 5 mesas redondas de 8 lugares cada, separados por parede de tecido
+{
+  const list = [];
+  const edge = mat(0x00b9cf, { emissive: 0x00414a });
+  // [centro z da fileira de 3 mesas, centro z da fileira de 2 mesas, centro z do contorno]
+  // 10 mesas por workshop, 4 cadeiras cada, todas do lado oposto ao palco: ninguém fica de costas
+  for (const [zA, zB, cz] of [[2.3, 5.9, 4.45], [11.2, 14.8, 12.65]]) {
+    for (const x of [9.5, 12.3, 15.1, 17.9, 20.7]) for (const z of [zA, zB]) {
+      roundTable(x, z, 0.75, 0.75, groups.d14, 0xe9e6df);
+      for (const deg of [-67.5, -22.5, 22.5, 67.5]) {
+        const a = THREE.MathUtils.degToRad(deg);
+        const px = x + Math.cos(a) * 1.12, pz = z + Math.sin(a) * 1.12;
+        list.push({ x: px, z: pz, dx: x - px, dz: z - pz });
+      }
+    }
+    // contorno laranja do workshop
+    const w = 14.4, d = 7.7, cx = 14.8;
+    for (const [ww, dd, ox, oz] of [[w, 0.08, 0, -d / 2], [w, 0.08, 0, d / 2], [0.08, d, -w / 2, 0], [0.08, d, w / 2, 0]])
+      box(ww, 0.02, dd, edge, cx + ox, 0.03, cz + oz, groups.d14, false);
+  }
+  chairs(list, 0xb7a58a, groups.d14);
+}// Coffee: mesas bistrô e buffet
+const COFFEE_TABLES = [[29.3, 1.66], [32.5, 1.66], [28.3, 4.49], [31.5, 5.03], [34.1, 6.15], [28.8, 10.65], [32.5, 10.1], [34.1, 13.47], [28.3, 14.0], [31.5, 14.6]];
+for (const [x, z] of COFFEE_TABLES) roundTable(x, z, 0.36, 1.08, scene, 0x1c1d21);
+// luz do coffee: pendentes quentes sobre cada mesa bistrô (os cabos aparecem com o teto fechado)
+{
+  const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffd9a0, toneMapped: false });
+  const shadeMat = mat(0x1a1a1f, { roughness: 0.6, side: THREE.DoubleSide });
+  const cableMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  const bulbGeo = new THREE.SphereGeometry(0.09, 12, 8);
+  const shadeGeo = new THREE.ConeGeometry(0.28, 0.3, 18, 1, true);
+  const y = 2.7;
+  const cableGeo = new THREE.CylinderGeometry(0.008, 0.008, ROOF_H - y - 0.25, 4);
+  for (const [x, z] of COFFEE_TABLES) {
+    const shade = new THREE.Mesh(shadeGeo, shadeMat); shade.position.set(x, y + 0.1, z); scene.add(shade);
+    const bulb = new THREE.Mesh(bulbGeo, bulbMat); bulb.position.set(x, y - 0.02, z); scene.add(bulb);
+    const cable = new THREE.Mesh(cableGeo, cableMat); cable.position.set(x, (ROOF_H + y + 0.25) / 2, z); groups.roof.add(cable);
+  }
+  for (const [x, z] of [[30.5, 3.5], [31, 9.5], [31, 15]]) {
+    const pl = new THREE.PointLight(0xffc98a, 14, 10, 2); pl.position.set(x, 2.6, z); scene.add(pl);
+  }
+}
+box(5.8, 0.9, 0.75, mat(0x141518), 31.2, 0.45, 18.15);
+box(5.8, 0.03, 0.8, mat(0xd8d2c6), 31.2, 0.915, 18.15);
+// Balcão dobrável de painel perfurado preto (frente + duas laterais, faixa perfurada no topo, prateleira e pés reguláveis).
+// Frente do balcão voltada para `face` (radianos em torno do eixo vertical; −π/2 = de frente para −x).
+const perfTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, 32, 32);
+  g.fillStyle = '#000'; g.beginPath(); g.arc(16, 16, 6, 0, Math.PI * 2); g.fill();
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(30, 5);
+  return t;
+})();
+const boothFrame = mat(0x0e0f11, { roughness: 0.45, metalness: 0.5 });
+const boothPanel = mat(0x1d1e22, { roughness: 0.75, metalness: 0.2, side: THREE.DoubleSide });
+const boothPerf = mat(0x2a2b30, { roughness: 0.6, metalness: 0.4, side: THREE.DoubleSide, alphaMap: perfTex, alphaTest: 0.5 });
+const boothFoot = mat(0xc9ccd1, { roughness: 0.3, metalness: 0.9 });
+function booth(x, z, face) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = face; scene.add(g);
+  const H = 1.15, BASE = 0.08, BAND = 0.2, W = 1.1, D = 0.55, back = 0.06;  // laterais um pouco fechadas para trás
+  const corners = [[-W / 2, D / 2], [W / 2, D / 2], [W / 2 - back, -D / 2], [-W / 2 + back, -D / 2]];
+  const rod = (a, b, r = 0.014) => {
+    const d = b.clone().sub(a), m = new THREE.Mesh(tubeGeo, boothFrame);
+    m.scale.set(r, d.length(), r); m.position.copy(a).addScaledVector(d, 0.5);
+    m.quaternion.setFromUnitVectors(UP, d.normalize()); m.castShadow = true; g.add(m);
+  };
+  const panel = (a, b, y0, y1, material) => {   // painel vertical entre dois pontos do chão
+    const w = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, y1 - y0), material);
+    m.position.set((a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2);
+    m.rotation.y = Math.atan2(-(b[1] - a[1]), b[0] - a[0]); m.castShadow = true; g.add(m);
+  };
+  // frente e laterais: painel liso embaixo, faixa perfurada em cima
+  for (const [a, b] of [[corners[0], corners[1]], [corners[1], corners[2]], [corners[3], corners[0]]]) {
+    panel(a, b, BASE, H - BAND, boothPanel);
+    panel(a, b, H - BAND, H, boothPerf);
+    for (const y of [BASE, H - BAND, H]) rod(new THREE.Vector3(a[0], y, a[1]), new THREE.Vector3(b[0], y, b[1]), 0.012);
+  }
+  // montantes e pés
+  for (const [cx, cz] of corners) {
+    rod(new THREE.Vector3(cx, BASE - 0.02, cz), new THREE.Vector3(cx, H, cz), 0.016);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.05, 12), boothFoot);
+    foot.position.set(cx, 0.025, cz); g.add(foot);
+  }
+  // prateleira interna
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(W - 0.12, 0.02, D - 0.08), boothFrame);
+  shelf.position.set(0, H - BAND, 0); shelf.castShadow = true; g.add(shelf);
+}
+// Mesa técnica no fim do corredor central, no eixo do LED central e de frente para o palco:
+// dois balcões lado a lado (DJ + apoio técnico), 2,5 m no total, com parede de tecido de 2,5 × 1,2 m logo atrás.
+const TEC_X = 23.2, TEC_DJ = 7.85, TEC_AP = 8.95;
+booth(TEC_X, TEC_DJ, -Math.PI / 2);
+booth(TEC_X, TEC_AP, -Math.PI / 2);
+box(0.06, 1.2, 2.5, fabricMat, TEC_X + 0.95, 0.6, 8.4, groups.fabric);   // atrás de quem opera
+// duas pessoas operando a mesa, de frente para o palco
+function person(x, z, face, shirt) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = face; scene.add(g);
+  const skin = mat(0xc08a68, { roughness: 0.7 }), cloth = mat(shirt, { roughness: 0.85 }), pants = mat(0x23252d, { roughness: 0.85 });
+  const part = (geo, m, px, py, pz, rx = 0) => {
+    const p = new THREE.Mesh(geo, m); p.position.set(px, py, pz); p.rotation.x = rx; p.castShadow = true; g.add(p);
+  };
+  for (const sx of [-0.1, 0.1]) part(new THREE.CylinderGeometry(0.075, 0.065, 0.86, 10), pants, sx, 0.43, 0);
+  part(new THREE.CylinderGeometry(0.19, 0.16, 0.62, 14), cloth, 0, 1.17, 0);
+  for (const sx of [-0.25, 0.25]) part(new THREE.CylinderGeometry(0.05, 0.045, 0.56, 8), cloth, sx, 1.12, -0.13, 0.55);  // braços para a mesa
+  part(new THREE.SphereGeometry(0.115, 16, 12), skin, 0, 1.63, 0);
+  part(new THREE.SphereGeometry(0.118, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2.2), mat(0x2a1d16, { roughness: 0.9 }), 0, 1.65, 0.01);  // cabelo
+}
+person(TEC_X + 0.55, TEC_DJ, Math.PI / 2, 0x16171c);   // DJ
+person(TEC_X + 0.55, TEC_AP, Math.PI / 2, 0x1b2a4a);   // apoio técnico
+{
+  const gear = mat(0x15161a, { roughness: 0.5, metalness: 0.3 });
+  const glow = new THREE.MeshBasicMaterial({ color: 0x00b9cf, toneMapped: false });
+  for (const dz of [-0.33, 0, 0.33]) {   // DJ
+    box(0.32, 0.08, 0.28, gear, TEC_X + 0.05, 0.99, TEC_DJ + dz, scene);
+    const led = new THREE.Mesh(new THREE.CircleGeometry(dz ? 0.09 : 0.05, 20), glow);
+    led.rotation.x = -Math.PI / 2; led.position.set(TEC_X + 0.05, 1.032, TEC_DJ + dz); scene.add(led);
+  }
+  // apoio técnico: mesa de luz e notebook aberto
+  box(0.34, 0.07, 0.5, gear, TEC_X + 0.05, 0.985, TEC_AP - 0.15, scene);
+  box(0.24, 0.015, 0.32, gear, TEC_X + 0.08, 0.96, TEC_AP + 0.25, scene);
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.2), new THREE.MeshBasicMaterial({ color: 0x3a6fd8, toneMapped: false, side: THREE.DoubleSide }));
+  screen.position.set(TEC_X + 0.2, 1.06, TEC_AP + 0.25); screen.rotation.y = Math.PI / 2; scene.add(screen);
+}
+// Salas: 4 mesas redondas × 6 cadeiras e TV
+{
+  const list = [];
+  const rooms = [[1.46, 4.28], [7.28, 10.1], [13.1, 15.9]];
+  rooms.forEach(([za, zb], i) => {
+    for (const x of [39.2, 41.9]) for (const z of [za, zb]) {
+      roundTable(x, z, 0.62, 0.75, scene);
+      for (let k = 0; k < 6; k++) {
+        const a = THREE.MathUtils.degToRad(115 + k * 26);
+        const px = x + Math.cos(a) * 0.98, pz = z + Math.sin(a) * 0.98;
+        list.push({ x: px, z: pz, dx: x - px, dz: z - pz });
+      }
+    }
+    const zc = (ZONES[7 + i].z[0] + ZONES[7 + i].z[1]) / 2;
+    box(0.08, 1.4, 2.4, mat(0x0d1a33, { emissive: 0x1d4fa8, emissiveIntensity: 0.8 }), 44.75, 1.6, zc);
+  });
+  chairs(list, 0x8b929b, scene);
+}
+
+/* ---------- Fluxo do público ---------- */
+// Entrada → corredor interativo → credenciamento → contorna a frente da mesa técnica → corredor central → palco
+const MAIN_FLOW = [[[1.2, 21.3], [1.2, 17.9], [24.6, 17.9], [24.6, 11.2], [22.1, 11.2], [22.1, 8.6], [7.4, 8.6]]];
+const PATHS = { d5: MAIN_FLOW, d14: MAIN_FLOW };
+const chevShape = new THREE.Shape([new THREE.Vector2(-0.22, 0.32), new THREE.Vector2(0.24, 0), new THREE.Vector2(-0.22, -0.32), new THREE.Vector2(-0.06, 0)]);
+const chevGeo = new THREE.ShapeGeometry(chevShape);
+const chevMat = new THREE.MeshBasicMaterial({ color: 0x00b9cf, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
+const stripMat = new THREE.MeshBasicMaterial({ color: 0x00b9cf, transparent: true, opacity: 0.12 });
+const SPACING = 1.3;
+const flowGroups = {}, flows = [];
+for (const [sc, list] of Object.entries(PATHS)) {
+  const g = new THREE.Group(); groups.flow.add(g); flowGroups[sc] = g;
+  const drawn = new Set();
+  for (const pts of list) {
+    const v = pts.map(([x, z]) => new THREE.Vector2(x, z));
+    const segs = []; let len = 0;
+    for (let i = 1; i < v.length; i++) {
+      const a = v[i - 1], b = v[i], l = a.distanceTo(b);
+      segs.push({ a, b, l, s0: len }); len += l;
+      // faixa base, sem repetir trechos comuns entre caminhos
+      const key = `${a.x},${a.y},${b.x},${b.y}`;
+      if (drawn.has(key)) continue;
+      drawn.add(key);
+      const horiz = Math.abs(b.x - a.x) > Math.abs(b.y - a.y);
+      const strip = new THREE.Mesh(new THREE.PlaneGeometry(horiz ? l + 0.9 : 0.9, horiz ? 0.9 : l + 0.9), stripMat);
+      strip.rotation.x = -Math.PI / 2; strip.position.set((a.x + b.x) / 2, 0.02, (a.y + b.y) / 2);
+      g.add(strip);
+    }
+    const chevrons = [];
+    for (let i = 0; i < Math.floor(len / SPACING); i++) {
+      const c = new THREE.Group();
+      const m = new THREE.Mesh(chevGeo, chevMat);
+      m.rotation.x = -Math.PI / 2;
+      c.add(m); g.add(c); chevrons.push(c);
+    }
+    flows.push({ sc, segs, len, chevrons });
+  }
+}
+function flowAt(f, s) {
+  const seg = f.segs.find(q => s <= q.s0 + q.l) || f.segs[f.segs.length - 1];
+  const t = (s - seg.s0) / seg.l;
+  const dir = seg.b.clone().sub(seg.a).normalize();
+  return { x: seg.a.x + (seg.b.x - seg.a.x) * t, z: seg.a.y + (seg.b.y - seg.a.y) * t, dir };
+}
+function placeChevrons(t) {
+  const off = reduceMotion ? 0 : (t * 0.0012) % SPACING;
+  for (const f of flows) {
+    if (f.sc !== scen) continue;
+    f.chevrons.forEach((g, i) => {
+      const p = flowAt(f, Math.min(i * SPACING + off + 0.3, f.len - 0.01));
+      const y = p.z > 19 ? -1.25 + Math.max(0, 1.25 - (p.z - 19.18) * 0.56) + 0.03 : (p.z > CZ[0] && p.x < CX[1] ? 0.09 : 0.04);  // acima da areia no corredor
+      g.position.set(p.x, y, p.z);
+      g.rotation.y = Math.atan2(-p.dir.y, p.dir.x);
+    });
+  }
+}
+
+/* ---------- Rótulos ---------- */
+const labelsEl = document.getElementById('labels');
+const LABELS = [
+  { t: 'Coxia', at: [1.5, 3.3, 8.4] },
+  { t: 'Palco', at: [4.8, 6.0, 8.4], s: 'LED 8 × 5 m + 2 laterais 4 × 5 m' },
+  { t: 'Plenária', at: [16, 3.6, 8.55], s: { d5: '240 cadeiras · corredor central', d14: 'Workshop A + B · 80 lugares' } },
+  { t: 'Workshop A', at: [15, 2.4, 4.1], only: 'd14', minor: true, s: '10 mesas redondas · 40 lugares' },
+  { t: 'Workshop B', at: [15, 2.4, 13.0], only: 'd14', minor: true, s: '10 mesas redondas · 40 lugares' },
+  { t: 'Mesa técnica', at: [23.2, 2.0, 8.4], minor: true, s: 'DJ + apoio técnico' },
+  { t: 'Treliça de luz', at: [16, 5.9, 0.55], minor: true },
+  { t: 'Coffee', at: [31, 3.0, 8.0], s: '10 mesas bistrô' },
+  { t: 'Buffet', at: [31.2, 1.8, 18.15], minor: true },
+  { t: 'Sala S1', at: [40.5, 3.4, 2.87], s: '24 lugares' },
+  { t: 'Sala S2', at: [40.5, 3.4, 8.65], s: '24 lugares' },
+  { t: 'Sala S3', at: [40.5, 3.4, 14.48], s: '24 lugares' },
+  { t: 'Apoio', at: [46.4, 2.6, 4] },
+  { t: 'Saída', at: [48.2, 6.6, -1.1], minor: true, s: 'porta de correr' },
+  { t: 'Faixa de pedestre', at: [30, 0.6, -1.1], minor: true },
+  { t: 'Corredor interativo', at: [12, 3.6, 17.92], minor: true },
+  { t: 'Credenciamento', at: [26.4, 2.7, 17.95], minor: true },
+  { t: 'Passagem oculta', at: [40.6, 2.2, 18.2], minor: true },
+  { t: 'Escada externa', at: [1.2, 1.0, 21.0], minor: true },
+  { t: 'Porta-paletes', at: [24, 12.6, -0.8], minor: true },
+];
+for (const l of LABELS) {
+  l.el = document.createElement('div');
+  l.el.className = 'lbl' + (l.minor ? ' minor' : '');
+  l.el.innerHTML = `<b>${l.t}</b>${l.s ? '<small></small>' : ''}`;
+  l.v = new THREE.Vector3(...l.at);
+  labelsEl.appendChild(l.el);
+}
+function refreshLabelText() {
+  for (const l of LABELS) {
+    if (l.s) l.el.querySelector('small').textContent = pick(l.s);
+    l.el.hidden = !!(l.only && l.only !== scen);
+  }
+}
+const tmpV = new THREE.Vector3();
+function placeLabels() {
+  const w = stageEl.clientWidth, h = stageEl.clientHeight;
+  for (const l of LABELS) {
+    if (l.el.hidden) continue;
+    tmpV.copy(l.v).project(camera);
+    const vis = tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && Math.abs(tmpV.y) < 1.1;
+    l.el.style.visibility = vis ? 'visible' : 'hidden';
+    if (vis) l.el.style.left = ((tmpV.x + 1) / 2 * w) + 'px', l.el.style.top = ((1 - tmpV.y) / 2 * h) + 'px';
+  }
+}
+
+/* ---------- Painel ---------- */
+const fmt = n => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const TOTALS = {
+  d5: [['240', 'cadeiras na plenária'], ['72', 'lugares nas salas'], ['10', 'mesas no coffee']],
+  d14: [['80', 'lugares em 20 mesas redondas'], ['72', 'lugares nas salas'], ['10', 'mesas no coffee']],
+};
+const totalsEl = document.getElementById('totals');
+const detailEl = document.getElementById('detail');
+const zonesEl = document.getElementById('zones');
+let selected = 'plenaria';
+
+for (const z of ZONES) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'zone'; b.id = 'zone-' + z.id; b.dataset.zone = z.id;
+  b.innerHTML = `<i style="background:#${z.color.toString(16).padStart(6, '0')}"></i><span>${z.name}</span><em>${fmt(z.size[0] * z.size[1])} m²</em>`;
+  b.addEventListener('click', () => select(z.id, true));
+  zonesEl.appendChild(b);
+}
+function renderPanel() {
+  totalsEl.innerHTML = TOTALS[scen].map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('');
+  const z = zoneById[selected];
+  const cap = pick(z.cap);
+  detailEl.innerHTML = `<h3>${z.name}</h3>
+    <div class="dims">${fmt(z.size[0])} × ${fmt(z.size[1])} m · ${fmt(z.size[0] * z.size[1])} m²</div>
+    <p>${pick(z.desc)}</p>${cap ? `<span class="cap">${cap}</span>` : ''}`;
+  for (const b of zonesEl.children) b.setAttribute('aria-current', b.dataset.zone === selected ? 'true' : 'false');
+  for (const q of ZONES) {
+    q.mesh.material.emissive.setHex(q.id === selected ? 0x003a45 : 0x000000);
+    if (!q.box) q.mesh.material.opacity = q.id === selected ? 1 : 0.88;
+  }
+}
+function select(id, fly) {
+  selected = id; renderPanel();
+  if (fly) {
+    const z = zoneById[id];
+    const span = Math.max(z.size[0], z.size[1], 6);
+    flyTo(new THREE.Vector3(z.center.x + span * 0.35, span * 1.05 + 4, z.center.z + span * 1.1 + 4), z.center.clone());
+    setViewButtons(null);
+  }
+}
+
+function setScenario(s) {
+  scen = s;
+  groups.d5.visible = s === 'd5'; groups.d14.visible = s === 'd14';  for (const [k, g] of Object.entries(flowGroups)) g.visible = k === s;
+  document.querySelectorAll('[data-sc]').forEach(b => b.setAttribute('aria-pressed', b.dataset.sc === s ? 'true' : 'false'));
+  refreshLabelText(); renderPanel();
+}
+document.querySelectorAll('[data-sc]').forEach(b => b.addEventListener('click', () => setScenario(b.dataset.sc)));
+
+/* ---------- Câmera ---------- */
+const VIEWS = {
+  persp:    { p: [38, 30, 44], t: [24, 0, 8.5] },
+  top:      { p: [24, 62, 9.6], t: [24, 0, 9.5] },
+  audience: { p: [23.5, 1.7, 8.6], t: [4, 2.2, 8.4] },
+  entry:    { p: [1.2, 0.4, 23.5], t: [10, 1.2, 17.6] },
+};
+let tween = null;
+function flyTo(p, t) {
+  if (reduceMotion) { camera.position.copy(p); controls.target.copy(t); controls.update(); return; }
+  tween = { p0: camera.position.clone(), t0: controls.target.clone(), p, t, start: performance.now(), dur: 900 };
+}
+function setViewButtons(v) {
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v ? 'true' : 'false'));
+}
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+  stopTour();
+  const v = VIEWS[b.dataset.view];
+  flyTo(new THREE.Vector3(...v.p), new THREE.Vector3(...v.t));
+  setViewButtons(b.dataset.view);
+}));
+controls.addEventListener('start', () => { tween = null; });
+
+/* ---------- Percurso pelo corredor: câmera na altura dos olhos, da escada até a plenária ---------- */
+const TOUR = new THREE.CatmullRomCurve3([
+  [1.2, 0.4, 22.4], [1.2, 1.65, 19.5], [1.25, 1.65, 18.4], [2.6, 1.65, 17.92], [12, 1.65, 17.92],
+  [22.4, 1.65, 17.92], [24.5, 1.65, 17.3], [24.6, 1.65, 13.8],
+].map(p => new THREE.Vector3(...p)), false, 'centripetal');
+const TOUR_LEN = TOUR.getLength(), TOUR_SPEED = 1.3;   // m/s, passo de caminhada lenta
+const tourBtn = document.getElementById('v-tour');
+const lookV = new THREE.Vector3();
+let tour = null;
+function stopTour() {
+  if (!tour) return;
+  tour = null; controls.enabled = true;
+  tourBtn.setAttribute('aria-pressed', 'false');
+}
+tourBtn.addEventListener('click', () => {
+  if (tour) { stopTour(); return; }
+  tween = null; tour = { start: performance.now() }; controls.enabled = false;
+  setViewButtons(null); tourBtn.setAttribute('aria-pressed', 'true');
+});
+renderer.domElement.addEventListener('pointerdown', stopTour);
+function updateTour(t) {
+  const u = Math.min(1, ((t - tour.start) / 1000) * TOUR_SPEED / TOUR_LEN);
+  camera.position.copy(TOUR.getPointAt(u));
+  lookV.copy(TOUR.getTangentAt(u)).setY(0).normalize().multiplyScalar(3).add(camera.position);
+  camera.lookAt(lookV);
+  if (u >= 1) { controls.target.copy(lookV); stopTour(); }
+}
+document.querySelectorAll('[data-roof]').forEach(b => b.addEventListener('click', () => {
+  const closed = b.dataset.roof === 'closed';
+  groups.roof.visible = closed;
+  // com o teto fechado o ambiente fica escuro e a luz cênica aparece
+  sun.intensity = closed ? 0.12 : 1.7;
+  fill.intensity = closed ? 0.05 : 0.35;
+  hemi.intensity = closed ? 0.3 : 0.9;
+  for (const b of beams) b.material.opacity = closed ? 0.1 : 0.06;
+  document.querySelectorAll('[data-roof]').forEach(o => o.setAttribute('aria-pressed', o === b ? 'true' : 'false'));
+  if (closed) {   // mostra por dentro, de onde o teto aparece
+    const v = VIEWS.audience;
+    flyTo(new THREE.Vector3(...v.p), new THREE.Vector3(...v.t));
+    setViewButtons('audience');
+  }
+}));
+
+/* ---------- Camadas ---------- */
+const bind = (id, fn) => { const el = document.getElementById(id); el.addEventListener('change', () => fn(el.checked)); };
+bind('ly-flow', v => groups.flow.visible = v);
+bind('ly-fabric', v => groups.fabric.visible = v);
+bind('ly-rack', v => groups.rack.visible = v);
+bind('ly-envelope', v => envelope.visible = v);
+bind('ly-labels', v => labelsEl.classList.toggle('off', !v));
+bind('ly-fx', v => { fx.visible = v; beams.forEach(b => b.visible = v); });
+
+/* ---------- Vídeo nos LEDs (um botão por painel) ---------- */
+const videoStatus = document.getElementById('video-status');
+const videoRows = document.getElementById('video-rows');
+for (const name of ['ESQUERDA-1', 'CENTRAL', 'DIREITA-2']) {
+  const p = ledPanels.find(q => q.args[0] === name);
+  const id = 'vf-' + name.toLowerCase();
+  const row = document.createElement('div');
+  row.className = 'vrow';
+  row.innerHTML = `<span class="vname">${name}</span><input type="file" id="${id}" accept="video/*" class="sr">` +
+    `<label class="btn" for="${id}">Escolher vídeo</label><button type="button" class="btn ghost" hidden>Padrão</button>`;
+  videoRows.appendChild(row);
+  const input = row.querySelector('input'), reset = row.querySelector('button');
+  input.addEventListener('change', () => {
+    const f = input.files[0];
+    if (!f) return;
+    if (p.video.src) URL.revokeObjectURL(p.video.src);
+    p.video.src = URL.createObjectURL(f);
+    p.video.play().then(() => {
+      p.videoOn = true; reset.hidden = false;
+      videoStatus.textContent = `Rodando "${f.name}" no ${name}.`;
+    }).catch(() => {
+      videoStatus.textContent = `Não foi possível reproduzir este arquivo no ${name}. Tente um vídeo MP4 (H.264).`;
+    });
+  });
+  reset.addEventListener('click', () => {
+    p.video.pause(); p.videoOn = false; reset.hidden = true; input.value = '';
+    drawLed(p.cv, ...p.args); p.tex.needsUpdate = true;
+    videoStatus.textContent = `O ${name} voltou ao padrão de teste.`;
+  });
+}
+
+/* ---------- Clique e hover ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const tip = document.getElementById('tip');
+function hit(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const h = ray.intersectObjects(pickables, false)[0];
+  return h ? { id: h.object.userData.zone, x: e.clientX - r.left, y: e.clientY - r.top } : null;
+}
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+  const h = hit(e); if (h) select(h.id, false);
+});
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || e.buttons) { tip.hidden = true; return; }
+  const h = hit(e);
+  renderer.domElement.style.cursor = h ? 'pointer' : 'grab';
+  if (h) { tip.hidden = false; tip.textContent = zoneById[h.id].name; tip.style.left = h.x + 'px'; tip.style.top = h.y + 'px'; }
+  else tip.hidden = true;
+});
+renderer.domElement.addEventListener('pointerleave', () => { tip.hidden = true; });
+
+/* ---------- Assistente do projeto (Claude na página) e pedidos de alteração ---------- */
+const cuse = name => (window.claude?.use ? window.claude.use(name) : Promise.resolve(null));
+const SC_NAME = { d14: 'Dias 1 a 4 (Workshops A e B, 80 lugares)', d5: 'Dia 5 (plateia de 250, 240 cadeiras)' };
+let db = null, userApi = null, myId = null;
+const reqList = document.getElementById('req-list'), reqStatus = document.getElementById('req-status');
+const reqForm = document.getElementById('req-form'), reqInput = document.getElementById('req-input');
+
+async function addRequest(texto, origem) {
+  if (!db) throw new Error('Os pedidos não estão disponíveis nesta visualização.');
+  await db.collection('pedidos').add({ texto, autor: myId, criadoEm: new Date().toISOString(), status: 'aberto', origem });
+}
+async function renderRequests(snap) {
+  const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const ids = [...new Set(docs.map(d => d.autor).filter(Boolean))];
+  let ps = {};
+  try { if (userApi && ids.length) ps = await userApi.profiles(ids); } catch {}
+  reqList.replaceChildren(...docs.map(d => {
+    const li = document.createElement('li');
+    const t = document.createElement('div'); t.textContent = String(d.texto || '');
+    const meta = document.createElement('div'); meta.className = 'meta';
+    const who = document.createElement('span');
+    const when = d.criadoEm ? new Date(d.criadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    who.textContent = `${(d.autor && ps[d.autor]?.name) || 'Alguém'} · ${when}`;
+    const st = document.createElement('span'); st.className = 'st' + (d.status === 'feito' ? ' feito' : '');
+    st.textContent = d.status === 'feito' ? 'Feito' : 'Aberto';
+    meta.append(who, st); li.append(t, meta);
+    return li;
+  }));
+  reqStatus.textContent = docs.length ? 'Os pedidos abertos são aplicados no 3D pela equipe.' : 'Nenhum pedido ainda. Escreva acima ou peça pelo assistente.';
+}
+(async () => {
+  // fora do Claude (site próprio) não há pedidos nem assistente: o cartão some
+  if (!window.claude?.use) { document.getElementById('req-card').hidden = true; return; }
+  [db, userApi] = await Promise.all([cuse('db'), cuse('user')]);
+  if (!db) { reqStatus.textContent = 'Entre com uma conta do Claude para ver e enviar pedidos.'; return; }
+  try { myId = userApi ? await userApi.id() : null; } catch {}
+  let canWrite = null;
+  try { canWrite = userApi ? await userApi.can('data.write') : null; } catch {}
+  reqForm.hidden = canWrite === false;
+  if (canWrite === false) reqStatus.textContent = 'Você pode ver os pedidos. Para enviar, peça acesso de Colaborador a quem compartilhou.';
+  db.collection('pedidos').orderBy('criadoEm', 'desc').limit(50).onSnapshot(renderRequests, () => {
+    reqStatus.textContent = 'Não foi possível carregar os pedidos agora.';
+  });
+})();
+reqForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const texto = reqInput.value.trim();
+  if (!texto) return;
+  try { await addRequest(texto, 'formulario'); reqInput.value = ''; }
+  catch { reqStatus.textContent = 'Não foi possível enviar o pedido. Verifique seu acesso e tente de novo.'; }
+});
+
+// chat
+const chatEl = document.getElementById('chat'), chatOpen = document.getElementById('chat-open');
+const chatLog = document.getElementById('chat-log'), chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input'), chatSend = document.getElementById('chat-send'), chatStop = document.getElementById('chat-stop');
+const chatTurns = [];
+let sample = null, chatCtl = null;
+const addMsg = (cls, text) => {
+  const m = document.createElement('div'); m.className = 'msg ' + cls; m.textContent = text;
+  chatLog.append(m); chatLog.scrollTop = chatLog.scrollHeight; return m;
+};
+let toolsOK = false;
+cuse('sample').then(s => {
+  sample = s;
+  if (!s) return;
+  s.limits().then(l => { toolsOK = !!l?.tools; }).catch(() => { toolsOK = false; });
+  chatOpen.hidden = false;
+  addMsg('bot', 'Olá! Respondo dúvidas sobre o evento, mudo a vista, o cenário e o teto, e registro pedidos de alteração para a equipe aplicar no 3D.');
+});
+chatOpen.addEventListener('click', () => { chatEl.hidden = false; chatOpen.hidden = true; chatInput.focus(); });
+document.getElementById('chat-close').addEventListener('click', () => { chatEl.hidden = true; chatOpen.hidden = !sample; });
+document.querySelectorAll('#chat-chips [data-q]').forEach(b => b.addEventListener('click', () => {
+  chatInput.value = b.dataset.q; chatInput.focus();
+  if (!b.dataset.q.endsWith(': ')) chatForm.requestSubmit();
+}));
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatForm.requestSubmit(); } });
+chatStop.addEventListener('click', () => chatCtl?.abort());
+
+function projectContext() {
+  const zonas = ZONES.map(z => `- ${z.name} (id "${z.id}"): ${fmt(z.size[0])} × ${fmt(z.size[1])} m, ${fmt(z.size[0] * z.size[1])} m². ${pick(z.desc)}${pick(z.cap) ? ' Destaque: ' + pick(z.cap) + '.' : ''}`).join('\n');
+  const notas = [...document.querySelectorAll('.notes li')].map(li => '- ' + li.textContent.trim()).join('\n');
+  return `PROJETO: ${document.title}, Grupo Arantes, Galpão 01. Área do evento: 48 × 19 m.\n` +
+    `Em tela agora: ${SC_NAME[scen]}; teto ${groups.roof.visible ? 'fechado' : 'aberto'}.\n` +
+    `Totais do cenário em tela: ${TOTALS[scen].map(([n, l]) => n + ' ' + l).join('; ')}.\n` +
+    `Outro cenário: ${SC_NAME[scen === 'd5' ? 'd14' : 'd5']}.\nÁREAS:\n${zonas}\nDETALHES E PREMISSAS:\n${notas}`;
+}
+const RULES = 'Você é o assistente da planta 3D interativa deste evento, dentro da própria página. ' +
+  'Responda em português do Brasil, curto e direto (no máximo 5 frases), usando só os dados do projeto abaixo. ' +
+  'Se algo não constar nos dados, diga que não consta e ofereça registrar um pedido. Não invente medidas nem números. ' +
+  'Você pode controlar a visualização com as ferramentas: cenário, vista, área em destaque e teto. ' +
+  'Você não consegue alterar o modelo 3D. Quando a pessoa pedir uma mudança no projeto, resuma o pedido em uma frase, ' +
+  'chame registrar_pedido com uma descrição clara e completa e avise que a equipe vai aplicar.\n\n';
+const chatTools = [
+  { name: 'mudar_cenario', description: 'Mostra a configuração de um dia: "d14" = Dias 1 a 4 (workshops), "d5" = Dia 5 (plateia de 250). Retorna o cenário ativo.',
+    inputSchema: { type: 'object', properties: { cenario: { type: 'string', enum: ['d14', 'd5'] } }, required: ['cenario'] },
+    execute: ({ cenario }) => { const c = String(cenario); if (!SC_NAME[c]) throw new Error('Use "d14" ou "d5".'); setScenario(c); return { ativo: c }; } },
+  { name: 'mudar_vista', description: 'Muda o ponto de vista da câmera: "persp" (3D geral), "top" (planta de cima), "audience" (da plateia para o palco), "entry" (entrada pela escada) ou "corredor" (caminha pelo corredor interativo).',
+    inputSchema: { type: 'object', properties: { vista: { type: 'string', enum: ['persp', 'top', 'audience', 'entry', 'corredor'] } }, required: ['vista'] },
+    execute: ({ vista }) => {
+      const v = String(vista);
+      if (v === 'corredor') { if (!tour) tourBtn.click(); return 'percorrendo o corredor'; }
+      if (!VIEWS[v]) throw new Error('Vista desconhecida.');
+      stopTour(); flyTo(new THREE.Vector3(...VIEWS[v].p), new THREE.Vector3(...VIEWS[v].t)); setViewButtons(v);
+      return 'vista ' + v;
+    } },
+  { name: 'mostrar_area', description: 'Destaca uma área na planta, mostra os detalhes dela no painel e leva a câmera até ela. Use o id da área.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string', enum: ZONES.map(z => z.id) } }, required: ['id'] },
+    execute: ({ id }) => { const z = String(id); if (!zoneById[z]) throw new Error('Área desconhecida.'); stopTour(); select(z, true); return 'mostrando ' + zoneById[z].name; } },
+  { name: 'teto', description: 'Mostra a proposta com teto fechado ("fechado") ou sem teto ("aberto").',
+    inputSchema: { type: 'object', properties: { estado: { type: 'string', enum: ['aberto', 'fechado'] } }, required: ['estado'] },
+    execute: ({ estado }) => { const s = String(estado) === 'fechado' ? 'roof-closed' : 'roof-open'; document.getElementById(s).click(); return 'teto ' + estado; } },
+  { name: 'registrar_pedido', description: 'Registra um pedido de alteração do projeto na lista compartilhada, para a equipe aplicar no 3D. Use só quando a pessoa pedir uma mudança. Retorna "registrado" ou um erro.',
+    inputSchema: { type: 'object', properties: { texto: { type: 'string', description: 'O pedido, claro e completo, em português.' } }, required: ['texto'] },
+    execute: async ({ texto }) => { const t = String(texto || '').trim().slice(0, 1000); if (!t) throw new Error('Pedido vazio.'); await addRequest(t, 'assistente'); return 'registrado'; } },
+];
+const SAMPLE_ERRORS = {
+  rate_limited: 'Muitas perguntas seguidas ou limite de uso atingido. Tente de novo daqui a pouco.',
+  session_expired: 'Sua sessão expirou. Entre de novo no Claude e recarregue a página.',
+  refused: 'Não consigo responder a isso. Tente perguntar de outro jeito.',
+  empty_completion: 'Não veio resposta. Tente perguntar de outro jeito.',
+  prompt_too_large: 'A conversa ficou longa demais. Feche e abra o assistente para começar de novo.',
+  tools_unavailable: 'Este app não deixa o assistente mexer na visualização. Ainda dá para fazer perguntas.',
+};
+chatForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const q = chatInput.value.trim();
+  if (!q || !sample || chatCtl) return;
+  chatInput.value = '';
+  addMsg('user', q);
+  chatTurns.push({ role: 'user', content: q });
+  while (chatTurns.length > 12) chatTurns.shift();
+  if (chatTurns[0]?.role === 'assistant') chatTurns.shift();
+  const bubble = addMsg('bot', 'Pensando…');
+  chatCtl = new AbortController(); chatSend.disabled = true; chatStop.hidden = false;
+  try {
+    const opts = {
+      modelTier: 'quick', signal: chatCtl.signal,
+      onText: ({ text }) => { bubble.textContent = text; chatLog.scrollTop = chatLog.scrollHeight; },
+    };
+    if (toolsOK) opts.tools = chatTools; else opts.cache = false;
+    const { text } = await sample([{ role: 'user', content: RULES + projectContext() }, ...chatTurns], opts);
+    bubble.textContent = text;
+    chatTurns.push({ role: 'assistant', content: text });
+  } catch (err) {
+    if (err?.code === 'cancelled') bubble.textContent = err.text || 'Parado.';
+    else if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(err?.code)) {
+      bubble.textContent = 'O assistente não está disponível para esta conta ou não foi autorizado nesta visita.';
+      chatForm.hidden = true;
+    } else {
+      bubble.textContent = err?.text || '';
+      addMsg('note', SAMPLE_ERRORS[err?.code] || 'A resposta foi interrompida. Tente de novo.');
+    }
+  } finally {
+    chatCtl = null; chatSend.disabled = false; chatStop.hidden = true;
+  }
+});
+
+/* ---------- Loop ---------- */
+function resize() {
+  const w = stageEl.clientWidth, h = stageEl.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stageEl);
+
+camera.position.set(...VIEWS.persp.p);
+controls.target.set(...VIEWS.persp.t);
+setScenario('d5');
+resize();
+
+const ease = k => 1 - Math.pow(1 - k, 3);
+let lastT = 0;
+renderer.setAnimationLoop(t => {
+  const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+  if (fx.visible && !reduceMotion) updateSparks(dt);
+  drawVideoFrame();
+  swayMovers(t);
+  updateCorridor(t, dt);
+  if (tour) updateTour(t);
+  else {
+    if (tween) {
+      const k = Math.min(1, (t - tween.start) / tween.dur), e = ease(k);
+      camera.position.lerpVectors(tween.p0, tween.p, e);
+      controls.target.lerpVectors(tween.t0, tween.t, e);
+      if (k >= 1) tween = null;
+    }
+    controls.update();
+  }
+  if (groups.flow.visible) placeChevrons(t);
+  renderer.render(scene, camera);
+  placeLabels();
+});
+</script>
+
+</body>
+</html>
